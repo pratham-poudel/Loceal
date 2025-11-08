@@ -854,3 +854,39 @@ module.exports.getCompletedOrders = async(req, res) => {
         });
     }
 }
+
+
+// Get Single Order Details with Chat -> pisot bhabim ki eitu use ase ne nai baa keneke korim -> present situation no idea about this
+exports.getOrderWithChat = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const customerId = req.customer._id;
+
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            customer: customerId
+        })
+        .populate('seller', 'businessName phone location')
+        .populate('product')
+        .populate('chatRoom');
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            order
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
+
