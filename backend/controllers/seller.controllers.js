@@ -451,6 +451,57 @@ module.exports.DeleteProduct = async (req, res) => {
     }
 };
 
+module.exports.UpdateStock = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const sellerId = req.seller._id;
+        const { stock } = req.body;
+
+        if (stock === undefined || stock < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Valid stock value is required"
+            });
+        }
+
+        const product = await ProductModel.findOne({
+            _id: productId,
+            seller: sellerId
+        });
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        product.stock = stock;
+        product.isAvailable = stock > 0;
+
+        await product.save();
+
+        res.status(200).json({
+            success: true,
+            product,
+            message: "Stock updated successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
+
+
+
+
+
+
+
+
 
 
 module.exports.InitiatePayment = async (req, res) => {
