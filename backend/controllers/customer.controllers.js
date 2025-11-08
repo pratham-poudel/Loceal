@@ -797,3 +797,42 @@ module.exports.createOrder = async(req, res) => {
         });
     }
 }
+
+// (pending, confirmed, meeting_scheduled) <-> Active Orders
+module.exports.getActiveOrders = async(req, res) => {
+    try{
+        const customerId = req.customer._id;
+
+        const activeOrders = await OrderModel.find({
+            customer: customerId,
+            orderStatus: { $in: ["pending", "confirmed", "meeting_scheduled"] }
+        })
+        .populate('seller', 'businessName')
+        .populate('product', 'title images')
+        .populate('chatRoom')
+        .sort({ createdAt: -1 });
+
+
+        res.status(200).json({
+            success: true,
+            orders: activeOrders,
+            total: activeOrders.length,
+            message: "Active orders retrieved successfully"
+        });
+    }catch(err){
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+
+// Get Completed Orders (for review/report)
+module.exports.getCompletedOrders = async(req, res) => {
+    try{
+
+    }catch(err){
+        
+    }
+}
