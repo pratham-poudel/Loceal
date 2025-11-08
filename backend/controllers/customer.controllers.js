@@ -2,6 +2,8 @@ const CustomerModel = require("../models/customer.model");
 const ProductModel = require("../models/product.model");
 const SellerModel = require("../models/seller.model");
 const CartModel = require("../models/cart.model");
+const OrderModel = require("../models/order.model");
+const ChatRoomModel = require("../models/chatRoom.model");
 
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../libs/nodemailer");
@@ -11,6 +13,7 @@ const crypto = require("crypto");
 const { getCoordinatesFromAddress } = require("../libs/geocoding");
 const { default: mongoose } = require("mongoose");
 const { createTransport } = require("nodemailer");
+const orderModel = require("../models/order.model");
 
 module.exports.Register = async (req, res) => {
     try{
@@ -238,6 +241,8 @@ module.exports.Logout = async (req, res) => {
     })
 }
 
+
+// Products
 module.exports.GetProducts = async (req, res) => {
     try{
         const {lat, lng, maxDistance=50} = req.query;
@@ -397,6 +402,8 @@ module.exports.GetProductDetails = async (req, res) => {
     }
 }
 
+
+// Cart 
 module.exports.AddToCart = async (req, res) => {
     try{
         const {productId, quantity = 1} = req.body;
@@ -706,3 +713,87 @@ module.exports.ClearCart = async (req, res) => {
 }
 
 
+// Orders
+module.exports.createOrder = async(req, res) => {
+    try{
+        customerId = req.customer._id;
+        const {productd} = req.body;
+
+        // get customer's cart
+        const cart = await CartModel.findOne({customer: customerId})
+                                    .populate("items.product")
+                                    .populate("items.seller"); 
+                                
+        
+        if (!cart || cart.items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Cart is empty"
+            });
+        }
+
+        // Find the specific product in cart
+        const cartItem = cart.items.find(item => item.product._id.toString() === productId);
+        
+        if (!cartItem) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found in cart"
+            });
+        }
+
+        // Generate order number
+        const orderNumber = 'ORD' + Date.now();
+
+
+        const order = new OrderModel({
+            orderNumber,
+            customer: customerId,
+            seller: cartItem.seller._id,
+            product: cartItem.product._id,
+            productSnapshot: {
+                title: cartItem.product.title,
+                description: cartItem.product.description,
+                images: cartItem.product.images,
+            },
+            quantity: cartItem.quantity,
+            pricePerUnit: cartItem.priceAtAdd,
+            totalAmount: cartItem.priceAtAdd * cartItem.quantity,
+            orderStatus: "pending", // Active order
+            paymentStatus: "cod_pending"
+        });
+
+        await order.save();
+
+
+        // Create a chat room for this order
+        const chatRoom = new ChatRoomModel({
+            order: order._id,
+            customer: customerId,
+            seller: cartItem.seller._id
+        });
+
+        // Update order with chat room reference
+        order.chatRoom = chatRoom._id;
+        await order.save();
+
+        // Remove ONLY this product from cart (keep others)
+        await CartModel.findOneAndUpdate(
+            { customer: customerId },
+            { $pull: { items: { product: productId } } }
+        );
+
+        // success response
+        res.status(201).json({
+            success: true,
+            order,
+            chatRoom,
+            message: "Order created successfully. You can now chat with the seller."
+        });
+    }catch(err){
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
