@@ -277,7 +277,68 @@ module.exports.GetProducts = async (req, res) => {
 };
 
 
+module.exports.CreateProduct = async (req, res) => {
+    try {
+        const sellerId = req.seller._id;
+        const {
+            title,
+            description,
+            category,
+            subCategory,
+            price,
+            unit,
+            minimumOrder = 1,
+            stock,
+            expiryDate,
+            tags = []
+        } = req.body;
 
+        // Basic validation
+        if (!title || !description || !category || !price || !unit || !stock) {
+            return res.status(400).json({
+                success: false,
+                message: "Title, description, category, price, unit, and stock are required"
+            });
+        }
+
+        // Validate price and stock
+        if (price < 0 || stock < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Price and stock cannot be negative"
+            });
+        }
+
+        const product = new ProductModel({
+            seller: sellerId,
+            title,
+            description,
+            category,
+            subCategory,
+            price,
+            unit,
+            minimumOrder,
+            stock,
+            expiryDate: expiryDate ? new Date(expiryDate) : null,
+            tags: Array.isArray(tags) ? tags : [tags],
+            isAvailable: stock > 0
+        });
+
+        await product.save();
+
+        res.status(201).json({
+            success: true,
+            product,
+            message: "Product created successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
 
 
 
