@@ -276,7 +276,6 @@ module.exports.GetProducts = async (req, res) => {
     }
 };
 
-
 module.exports.CreateProduct = async (req, res) => {
     try {
         const sellerId = req.seller._id;
@@ -340,8 +339,6 @@ module.exports.CreateProduct = async (req, res) => {
     }
 };
 
-
-// Get single product details
 module.exports.GetProductDetails = async (req, res) => {
     try {
         const { productId } = req.params;
@@ -372,6 +369,58 @@ module.exports.GetProductDetails = async (req, res) => {
         });
     }
 };
+
+module.exports.UpdateProduct = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const sellerId = req.seller._id;
+        const updateData = req.body;
+
+        // Find product and verify ownership
+        const product = await ProductModel.findOne({
+            _id: productId,
+            seller: sellerId
+        });
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        // Fields that can be updated
+        const allowedUpdates = [
+            'title', 'description', 'category', 'subCategory', 
+            'price', 'unit', 'minimumOrder', 'stock', 'expiryDate', 'tags'
+        ];
+
+        // Update only allowed fields
+        allowedUpdates.forEach(field => {
+            if (updateData[field] !== undefined) {
+                product[field] = updateData[field];
+            }
+        });
+
+        // Update availability based on stock
+        product.isAvailable = product.stock > 0;
+
+        await product.save();
+
+        res.status(200).json({
+            success: true,
+            product,
+            message: "Product updated successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
+
 
 
 module.exports.InitiatePayment = async (req, res) => {
