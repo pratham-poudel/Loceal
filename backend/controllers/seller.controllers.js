@@ -495,7 +495,39 @@ module.exports.UpdateStock = async (req, res) => {
     }
 };
 
+module.exports.ToggleAvailability = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const sellerId = req.seller._id;
 
+        const product = await ProductModel.findOne({
+            _id: productId,
+            seller: sellerId
+        });
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        product.isAvailable = !product.isAvailable;
+        await product.save();
+
+        res.status(200).json({
+            success: true,
+            product,
+            message: `Product ${product.isAvailable ? 'enabled' : 'disabled'} successfully`
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
 
 
 
