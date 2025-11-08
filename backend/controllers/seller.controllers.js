@@ -341,6 +341,37 @@ module.exports.CreateProduct = async (req, res) => {
 };
 
 
+// Get single product details
+module.exports.GetProductDetails = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const sellerId = req.seller._id;
+
+        const product = await ProductModel.findOne({
+            _id: productId,
+            seller: sellerId
+        });
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            product,
+            message: "Product details fetched successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
 
 
 module.exports.InitiatePayment = async (req, res) => {
