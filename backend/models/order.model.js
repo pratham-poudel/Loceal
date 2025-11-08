@@ -61,11 +61,11 @@ const orderSchema = new mongoose.Schema({
             refPath: 'paymentConfirmedBy.userType'
         },
         confirmedAt: Date
-    }, // ← THIS COMMA WAS MISSING
+    },
     orderStatus: {
         type: String,
         default: "pending",
-        enum: ["pending", "confirmed", "meeting_scheduled", "completed", "cancelled", "disputed"]
+        enum: ["pending", "confirmed", "completed", "cancelled", "disputed"]
     },
     statusHistory: [{
         status: {
@@ -79,30 +79,6 @@ const orderSchema = new mongoose.Schema({
             type: String
         }
     }],
-    meetingDetails: {
-        location: {
-            type: {
-                type: String,
-                enum: ["Point"],
-                default: "Point"
-            },
-            coordinates: {
-                type: [Number], // [longitude, latitude]
-            }, 
-            address: String,
-        },
-        scheduledTime: {
-            type: Date
-        }, 
-        confirmedByCustomer: {
-            type: Boolean,
-            default: false
-        },
-        confirmedBySeller: {
-            type: Boolean,
-            default: false
-        }
-    },
     chatRoom: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ChatRoom',

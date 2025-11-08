@@ -359,7 +359,7 @@ module.exports.GetProductDetails = async (req, res) => {
         const {productId} = req.params;
 
         // validating product Id
-        if(!mongoose.Types.ObjecId.isValid(productId)){
+        if(!mongoose.Types.ObjectId.isValid(productId)){
             return res.status(400).json({
                 success: false,
                 message: "Invalid Product ID"
@@ -536,7 +536,7 @@ module.exports.GetCart = async (req, res) => {
         // total price calc kor
         let total = 0;
         cart.items.forEach(item => {
-            total += items.priceAtAdd*item.quantity;
+            total += item.priceAtAdd*item.quantity;
         });
 
         res.status(200).json({
@@ -714,10 +714,10 @@ module.exports.ClearCart = async (req, res) => {
 
 
 // Orders
-module.exports.createOrder = async(req, res) => {
+module.exports.CreateOrder = async(req, res) => {
     try{
         customerId = req.customer._id;
-        const {productd} = req.body;
+        const {productId} = req.body;
 
         // get customer's cart
         const cart = await CartModel.findOne({customer: customerId})
@@ -793,13 +793,13 @@ module.exports.createOrder = async(req, res) => {
     }catch(err){
         res.status(500).json({
             success: false,
-            error: error.message
+            error: err.message
         });
     }
 }
 
 // (pending, confirmed, meeting_scheduled) <-> Active Orders
-module.exports.getActiveOrders = async(req, res) => {
+module.exports.GetActiveOrders = async(req, res) => {
     try{
         const customerId = req.customer._id;
 
@@ -822,14 +822,14 @@ module.exports.getActiveOrders = async(req, res) => {
     }catch(err){
         res.status(500).json({
             success: false,
-            error: error.message
+            error: err.message
         });
     }
 }
 
 
 // Get Completed Orders (for review/report)
-module.exports.getCompletedOrders = async(req, res) => {
+module.exports.GetCompletedOrders = async(req, res) => {
     try{
         const customerId = req.customer._id;
 
@@ -889,4 +889,5 @@ exports.getOrderWithChat = async (req, res) => {
         });
     }
 };
+
 

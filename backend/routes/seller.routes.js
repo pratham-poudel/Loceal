@@ -11,4 +11,9 @@ router.get("/verifySeller/:token", sellerController.VerifySeller);
 router.post("/login", sellerController.Login);
 router.get("/logout", sellerController.Logout);
 
+
+// seller initiate payment
+router.post("/orders/:orderId/initiate-payment", authSeller, sellerController.InitiatePayment);
+router.post("/orders/:orderId/verify-otp", authSeller, sellerController.VerifyOTP); // Seller enters OTP
+
 module.exports = router;

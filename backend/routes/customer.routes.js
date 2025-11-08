@@ -31,6 +31,12 @@ router.put("/cart/update/:productId", authCustomer, customerController.UpdateCar
 router.delete("/cart/clear", authCustomer, customerController.ClearCart);
 
 
+// create order from specific cart item
+router.post("/orders", authCustomer, customerController.CreateOrder); 
+// Pending/active orders
+router.get("/orders/active", authCustomer, customerController.GetActiveOrders); 
+// Get Single Order Details with Chat
+router.get("/orders/:orderId", authCustomer, customerController.GetOrderWithChat); 
 
 
 
