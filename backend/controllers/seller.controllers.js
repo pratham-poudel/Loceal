@@ -421,6 +421,36 @@ module.exports.UpdateProduct = async (req, res) => {
     }
 };
 
+module.exports.DeleteProduct = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const sellerId = req.seller._id;
+
+        const product = await ProductModel.findOneAndDelete({
+            _id: productId,
+            seller: sellerId
+        });
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Product deleted successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
+
 
 
 module.exports.InitiatePayment = async (req, res) => {
