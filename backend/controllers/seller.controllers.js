@@ -232,6 +232,56 @@ module.exports.Logout = async (req, res) => {
 }
 
 
+
+
+
+module.exports.GetProducts = async (req, res) => {
+    try {
+        const sellerId = req.seller._id;
+        const { search = "", category = "" } = req.query;
+
+        const query = { 
+            seller: sellerId 
+        };
+
+        // Add search filter
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } },
+                { tags: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Add category filter
+        if (category) {
+            query.category = category;
+        }
+
+        const products = await ProductModel.find(query)
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            products,
+            total: products.length,
+            message: "Products fetched successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
+
+
+
+
+
+
+
 module.exports.InitiatePayment = async (req, res) => {
     try {
         const { orderId } = req.params;
