@@ -166,7 +166,7 @@ module.exports.Register = async (req, res) => {
             <p class="message">Please verify your email address to activate your account.</p>
 
             <div style="text-align: center;">
-                <a href="http://localhost:${process.env.PORT}/customer/verifyCustomer/${token}" class="button">Verify Email</a>
+                <a href="http://localhost:${process.env.FRONTEND_PORT}/customer/verifyCustomer/${token}" class="button">Verify Email</a>
             </div>
 
             <p class="footer">If you did not sign up for this, you can ignore this email.</p>

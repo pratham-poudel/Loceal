@@ -1,22 +1,66 @@
 // src/pages/Auth/PendingVerification.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Mail, RefreshCw, Home, LogOut } from 'lucide-react';
+import { authAPI } from '../../lib/api';
+import { Mail, RefreshCw, Home, LogOut, CheckCircle } from 'lucide-react';
 
 const PendingVerification = () => {
-  const { user, userType, logout } = useAuth();
+  const { user, userType, logout, updateVerificationStatus, checkAuthStatus } = useAuth();
   const navigate = useNavigate();
+  const [checking, setChecking] = useState(false);
+
+  const handleCheckVerification = async () => {
+    try {
+      setChecking(true);
+      
+      // Call API to check current user's verification status
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login again.');
+        logout();
+        return;
+      }
+
+      // Since we don't have a dedicated endpoint to check verification status,
+      // we'll try to fetch the current user's data
+      // You might need to add this endpoint to your backend
+      try {
+        // Try to access a protected endpoint - if it works, user is verified
+        const response = await authAPI.customer.getProfile(); // You'll need to create this endpoint
+        if (response.data.customer.isVerified) {
+          updateVerificationStatus(true);
+          navigate(userType === 'customer' ? '/customer/dashboard' : '/seller/dashboard');
+          return;
+        }
+      } catch (error) {
+        // If we get a 401/403, user might not be verified yet
+        console.log('User not verified yet');
+      }
+
+      // Alternative approach: Refresh auth status
+      await checkAuthStatus();
+      
+      // Check localStorage for updated verification status
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      if (userData?.isVerified) {
+        updateVerificationStatus(true);
+        navigate(userType === 'customer' ? '/customer/dashboard' : '/seller/dashboard');
+      } else {
+        alert('Your email is not verified yet. Please check your inbox and click the verification link.');
+      }
+    } catch (error) {
+      console.error('Error checking verification:', error);
+      alert('Failed to check verification status. Please try again.');
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
     navigate(userType === 'customer' ? '/customer/login' : '/seller/login');
   };
-
-//   const handleResendEmail = () => {
-//     // In a real app, you'd call an API to resend verification
-//     alert('Verification email sent! Please check your inbox.');
-//   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-900 to-primary-700 flex items-center justify-center py-12 px-4">
@@ -67,27 +111,26 @@ const PendingVerification = () => {
               <div className="bg-primary-100 text-primary-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
                 3
               </div>
-              <span className="text-sm text-gray-700">Return here and refresh the page</span>
+              <span className="text-sm text-gray-700">Return here and click the button below</span>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="space-y-3">
             <button
-              onClick={() => window.location.reload()}
-              className="w-full btn-primary flex items-center justify-center space-x-2 py-3"
+              onClick={handleCheckVerification}
+              disabled={checking}
+              className="w-full btn-primary flex items-center justify-center space-x-2 py-3 disabled:opacity-50"
             >
-              <RefreshCw className="w-5 h-5" />
-              <span>I've Verified My Email - Refresh</span>
+              {checking ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <CheckCircle className="w-5 h-5" />
+              )}
+              <span>
+                {checking ? 'Checking...' : 'I\'ve Verified My Email - Continue'}
+              </span>
             </button>
-
-            {/* <button
-              onClick={handleResendEmail}
-              className="w-full btn-secondary flex items-center justify-center space-x-2 py-3"
-            >
-              <Mail className="w-5 h-5" />
-              <span>Resend Verification Email</span>
-            </button> */}
 
             <div className="flex space-x-3 pt-4 border-t">
               <button
@@ -106,6 +149,13 @@ const PendingVerification = () => {
                 Logout
               </button>
             </div>
+          </div>
+
+          {/* Help Text */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              After clicking the verification link in your email, return here and click the button above.
+            </p>
           </div>
         </div>
       </div>
