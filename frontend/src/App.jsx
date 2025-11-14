@@ -11,6 +11,17 @@ import SellerLogin from './pages/Auth/SellerLogin';
 import SellerRegister from './pages/Auth/SellerRegister';
 
 
+import CustomerDashboard from './pages/Customer/CustomerDashboard';
+import ProductList from './pages/Customer/ProductList';
+import ProductDetails from './pages/Customer/ProductDetails';
+import Cart from './pages/Customer/Cart';
+import ActiveOrders from './pages/Customer/ActiveOrders';
+import CompletedOrders from './pages/Customer/CompletedOrders';
+import Chat from './pages/Customer/Chat';
+
+
+
+
 import HomePage from './pages/Home/HomePage';
 
 function App() {
@@ -30,13 +41,13 @@ function App() {
                 <Route path="/seller/register" element={<SellerRegister />} />
 
                 {/* Customer Routes */}
-                {/* <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+                <Route path="/customer/dashboard" element={<CustomerDashboard />} />
                 <Route path="/customer/products" element={<ProductList />} />
                 <Route path="/customer/products/:productId" element={<ProductDetails />} />
                 <Route path="/customer/cart" element={<Cart />} />
                 <Route path="/customer/orders/active" element={<ActiveOrders />} />
                 <Route path="/customer/orders/completed" element={<CompletedOrders />} />
-                <Route path="/customer/chat/:orderId" element={<Chat />} /> */}
+                <Route path="/customer/chat/:orderId" element={<Chat />} />
 
                 {/* Seller Routes */}
                 {/* <Route path="/seller/dashboard" element={<SellerDashboard />} />
