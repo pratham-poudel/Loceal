@@ -10,6 +10,8 @@ router.post("/register", adminController.Register);
 router.post("/login", adminController.Login);
 router.get("/logout", adminController.Logout);
 
+router.get("/profile", authAdmin, adminController.GetProfile);
+
 module.exports = router;
 
 

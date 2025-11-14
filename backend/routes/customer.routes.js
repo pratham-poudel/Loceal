@@ -12,6 +12,8 @@ router.get("/verifyCustomer/:token", customerController.VerifyCustomer);
 router.post("/login", customerController.Login);
 router.get("/logout", customerController.Logout);
 
+router.get("/profile", authCustomer, customerController.GetProfile);
+
 
 // browse all products
 router.get("/products", authCustomer, customerController.GetProducts)

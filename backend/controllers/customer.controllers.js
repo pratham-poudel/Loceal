@@ -268,6 +268,21 @@ module.exports.Logout = async (req, res) => {
 }
 
 
+module.exports.GetProfile = async (req, res) => {
+    try {
+    res.json({
+      success: true,
+      customer: req.customer
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+}
+
+
 // Products
 module.exports.GetProducts = async (req, res) => {
     try{

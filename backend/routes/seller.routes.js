@@ -11,6 +11,7 @@ router.get("/verifySeller/:token", sellerController.VerifySeller);
 router.post("/login", sellerController.Login);
 router.get("/logout", sellerController.Logout);
 
+router.get("/profile", authSeller, sellerController.GetProfile);
 
 
 // PRODUCT MANAGEMENT ROUTES
