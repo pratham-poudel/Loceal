@@ -92,4 +92,4 @@ CustomerSchema.methods.comparePassword = async function(enteredPassword){
 }
 
 
-module.exports = mongoose.model("Customer", CustomerSchema);
+module.exports = mongoose.model("Customers", CustomerSchema);

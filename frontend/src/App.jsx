@@ -26,7 +26,9 @@ import SellerOrders from './pages/Seller/SellerOrders';
 import SellerChat from './pages/Seller/SellerChat';
 import AddProduct from './pages/Seller/AddProduct';
 
-import EmailVerification from './pages/Auth/EmailVerificationSuccess';
+import EmailVerificationSuccess from './pages/Auth/EmailVerificationSuccess';
+import SellerEmailVerificationSuccess from './pages/Auth/SellerEmailVerificationSuccess';
+import PendingVerification from './pages/Auth/PendingVerification';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 
@@ -41,6 +43,10 @@ function App() {
             <Header />
             <main className="flex-1">
               <Routes>
+                <Route path="/customer/verifyCustomer/:token" element={<EmailVerificationSuccess />} />
+                <Route path="/seller/verifySeller/:token" element={<SellerEmailVerificationSuccess />} />
+                <Route path="/pending-verification" element={<PendingVerification />} />
+                
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/customer/login" element={<CustomerLogin />} />

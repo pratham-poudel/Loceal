@@ -151,10 +151,7 @@ module.exports.Register = async (req, res) => {
     <div class="container">
         <table width="100%" cellpadding="0" cellspacing="0" class="header-table">
             <tr>
-                <td style="padding: 20px; font-size: 24px; font-weight: bold;">IAP CELL</td>
-            </tr>
-            <tr>
-                <td style="font-size: 16px;">LOCEAL </td>
+                <td style="padding: 20px; font-size: 24px; font-weight: bold;">LOCEAL</td>
             </tr>
             <tr>
                 <td style="font-size: 16px;">Local Deal</td>
@@ -209,6 +206,8 @@ module.exports.VerifyCustomer = async (req, res) => {
                 message: "Unauthorized. Invalid token."
             })
         }
+
+        console.log("Decoded token:", decoded)
 
         const customer = await CustomerModel.findById(decoded._id);
 
