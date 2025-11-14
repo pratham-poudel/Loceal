@@ -39,10 +39,12 @@ export const authAPI = {
   customer: {
     login: (credentials) => api.post('/customer/login', credentials),
     register: (userData) => api.post('/customer/register', userData),
+    verifyEmail: (token) => api.get(`/customer/verifyCustomer/${token}`),
   },
   seller: {
     login: (credentials) => api.post('/seller/login', credentials),
     register: (userData) => api.post('/seller/register', userData),
+    verifyEmail: (token) => api.get(`/seller/verifySeller/${token}`),
   },
 };
 

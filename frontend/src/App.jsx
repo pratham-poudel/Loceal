@@ -26,7 +26,8 @@ import SellerOrders from './pages/Seller/SellerOrders';
 import SellerChat from './pages/Seller/SellerChat';
 import AddProduct from './pages/Seller/AddProduct';
 
-
+import EmailVerification from './pages/Auth/EmailVerificationSuccess';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 
 import HomePage from './pages/Home/HomePage';
@@ -48,13 +49,41 @@ function App() {
                 <Route path="/seller/register" element={<SellerRegister />} />
 
                 {/* Customer Routes */}
-                <Route path="/customer/dashboard" element={<CustomerDashboard />} />
-                <Route path="/customer/products" element={<ProductList />} />
-                <Route path="/customer/products/:productId" element={<ProductDetails />} />
-                <Route path="/customer/cart" element={<Cart />} />
-                <Route path="/customer/orders/active" element={<ActiveOrders />} />
-                <Route path="/customer/orders/completed" element={<CompletedOrders />} />
-                <Route path="/customer/chat/:orderId" element={<Chat />} />
+                <Route path="/customer/dashboard" element={
+                  <ProtectedRoute>
+                    <CustomerDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/customer/products" element={
+                  <ProtectedRoute>
+                    <ProductList />
+                  </ProtectedRoute>
+                } />
+                <Route path="/customer/products/:productId" element={
+                  <ProtectedRoute>
+                    <ProductDetails />
+                  </ProtectedRoute>
+                } />
+                <Route path="/customer/cart" element={
+                  <ProtectedRoute>
+                    <Cart />
+                  </ProtectedRoute>
+                } />
+                <Route path="/customer/orders/active" element={
+                  <ProtectedRoute>
+                    <ActiveOrders />
+                  </ProtectedRoute>
+                } />
+                <Route path="/customer/orders/completed" element={
+                  <ProtectedRoute>
+                    <CompletedOrders />
+                  </ProtectedRoute>
+                } />
+                <Route path="/customer/chat/:orderId" element={
+                  <ProtectedRoute>
+                    <Chat />
+                  </ProtectedRoute>
+                } />
 
                 {/* Seller Routes */}
                 <Route path="/seller/dashboard" element={<SellerDashboard />} />

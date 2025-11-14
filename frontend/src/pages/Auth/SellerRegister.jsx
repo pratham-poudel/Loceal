@@ -71,7 +71,7 @@ const SellerRegister = () => {
       const { seller, token, message } = response.data;
       
       await login(seller, token, 'seller');
-      navigate('/seller/dashboard');
+      navigate('/pending-verification');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

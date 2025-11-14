@@ -22,13 +22,13 @@ const CustomerRegister = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData(prev => ({
@@ -55,9 +55,11 @@ const CustomerRegister = () => {
     try {
       const response = await authAPI.customer.register(formData);
       const { customer, token, message } = response.data;
-      
+
       await login(customer, token, 'customer');
-      navigate('/customer/dashboard');
+
+      // Redirect to pending verification page
+      navigate('/pending-verification');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -182,7 +184,7 @@ const CustomerRegister = () => {
                 <MapPin className="w-5 h-5 mr-2 text-primary-500" />
                 Default Address
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label htmlFor="defaultAddress.street" className="block text-sm font-medium text-gray-700 mb-2">
