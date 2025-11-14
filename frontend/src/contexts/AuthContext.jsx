@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isVerified, setIsVerified] = useState(true); // Default to true for existing users
 
   useEffect(() => {
     checkAuthStatus();
@@ -30,6 +31,7 @@ export const AuthProvider = ({ children }) => {
         if (userData) {
           setUser(userData);
           setUserType(userData.userType);
+          setIsVerified(userData.isVerified !== false); // Check verification status
         }
       }
     } catch (error) {
@@ -43,9 +45,25 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (userData, token, type) => {
     localStorage.setItem('token', token);
-    localStorage.setItem('userData', JSON.stringify({ ...userData, userType: type }));
+    localStorage.setItem('userData', JSON.stringify({ 
+      ...userData, 
+      userType: type,
+      isVerified: userData.isVerified 
+    }));
     setUser(userData);
     setUserType(type);
+    setIsVerified(userData.isVerified !== false);
+  };
+
+  const updateVerificationStatus = (status) => {
+    setIsVerified(status);
+    // Update in localStorage as well
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (userData) {
+      userData.isVerified = status;
+      localStorage.setItem('userData', JSON.stringify(userData));
+      setUser(userData);
+    }
   };
 
   const logout = () => {
@@ -53,14 +71,17 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('userData');
     setUser(null);
     setUserType(null);
+    setIsVerified(true);
   };
 
   const value = {
     user,
     userType,
+    isVerified,
     login,
     logout,
-    loading
+    loading,
+    updateVerificationStatus
   };
 
   return (
