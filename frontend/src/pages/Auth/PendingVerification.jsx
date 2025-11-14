@@ -13,10 +13,10 @@ const PendingVerification = () => {
     navigate(userType === 'customer' ? '/customer/login' : '/seller/login');
   };
 
-  const handleResendEmail = () => {
-    // In a real app, you'd call an API to resend verification
-    alert('Verification email sent! Please check your inbox.');
-  };
+//   const handleResendEmail = () => {
+//     // In a real app, you'd call an API to resend verification
+//     alert('Verification email sent! Please check your inbox.');
+//   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-900 to-primary-700 flex items-center justify-center py-12 px-4">
@@ -81,13 +81,13 @@ const PendingVerification = () => {
               <span>I've Verified My Email - Refresh</span>
             </button>
 
-            <button
+            {/* <button
               onClick={handleResendEmail}
               className="w-full btn-secondary flex items-center justify-center space-x-2 py-3"
             >
               <Mail className="w-5 h-5" />
               <span>Resend Verification Email</span>
-            </button>
+            </button> */}
 
             <div className="flex space-x-3 pt-4 border-t">
               <button

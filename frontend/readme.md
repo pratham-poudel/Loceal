@@ -26,3 +26,5 @@ const AuthContext = createContext();
 
 - removed CartProvider for the time being
 
+- removed Resend Verification Email for now
+- might add later tho
