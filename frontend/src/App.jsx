@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+// import { CartProvider } from './contexts/CartContext';
+import Header from './components/common/Header';
+import Footer from './components/common/Footer';
+
+
+import HomePage from './pages/Home/HomePage';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button className="text-lg text-red-500" onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <AuthProvider>
+      {/* <CartProvider> */}
+        <Router>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              <Routes>
+                {/* Public Routes */}
+                {/* <Route path="/" element={<HomePage />} />
+                <Route path="/customer/login" element={<CustomerLogin />} />
+                <Route path="/customer/register" element={<CustomerRegister />} />
+                <Route path="/seller/login" element={<SellerLogin />} />
+                <Route path="/seller/register" element={<SellerRegister />} /> */}
+
+                {/* Customer Routes */}
+                {/* <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+                <Route path="/customer/products" element={<ProductList />} />
+                <Route path="/customer/products/:productId" element={<ProductDetails />} />
+                <Route path="/customer/cart" element={<Cart />} />
+                <Route path="/customer/orders/active" element={<ActiveOrders />} />
+                <Route path="/customer/orders/completed" element={<CompletedOrders />} />
+                <Route path="/customer/chat/:orderId" element={<Chat />} /> */}
+
+                {/* Seller Routes */}
+                {/* <Route path="/seller/dashboard" element={<SellerDashboard />} />
+                <Route path="/seller/products" element={<ProductManagement />} />
+                <Route path="/seller/products/add" element={<AddProduct />} />
+                <Route path="/seller/products/edit/:productId" element={<AddProduct />} />
+                <Route path="/seller/orders" element={<SellerOrders />} />
+                <Route path="/seller/chat/:orderId" element={<SellerChat />} /> */}
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      {/* </CartProvider> */}
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
