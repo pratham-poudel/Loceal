@@ -22,10 +22,17 @@ router.delete("/products/:productId", authSeller, sellerController.DeleteProduct
 router.patch("/products/:productId/stock", authSeller, sellerController.UpdateStock); // Update stock only
 router.patch("/products/:productId/availability", authSeller, sellerController.ToggleAvailability); // Toggle available/unavailable
 
-
+// 
 
 // seller initiate payment
 router.post("/orders/:orderId/initiate-payment", authSeller, sellerController.InitiatePayment);
 router.post("/orders/:orderId/verify-otp", authSeller, sellerController.VerifyOTP); // Seller enters OTP
 
+
+router.get("/orders", authSeller, sellerController.GetOrders);
+router.get("/orders/:orderId", authSeller, sellerController.GetOrderDetails);
+router.put("/orders/:orderId/status", authSeller, sellerController.UpdateOrderStatus);
+
+
 module.exports = router;
+

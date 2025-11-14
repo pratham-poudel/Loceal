@@ -28,6 +28,8 @@ app.use(cookieParser());
 app.use("/customer", customerRoutes);
 app.use("/seller", sellerRoutes);
 app.use("/admin", adminRoutes);
-
+app.use("/api/chat", require("./routes/chat.routes"));
+// Add review routes to app.js
+app.use('/api/reviews', require('./routes/review.routes'));
 
 module.exports = app;

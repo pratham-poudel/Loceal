@@ -850,7 +850,7 @@ module.exports.GetCompletedOrders = async(req, res) => {
     }catch(err){
         res.status(500).json({
             success: false,
-            error: error.message
+            error: err.message
         });
     }
 }
@@ -890,4 +890,98 @@ exports.getOrderWithChat = async (req, res) => {
     }
 };
 
+
+// Add these to customer.controllers.js:
+
+// Cancel Order
+module.exports.CancelOrder = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const customerId = req.customer._id;
+
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            customer: customerId
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        // Only allow cancellation for pending orders
+        if (!["pending", "confirmed"].includes(order.orderStatus)) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot cancel order in current status"
+            });
+        }
+
+        order.orderStatus = "cancelled";
+        order.cancelledBy = {
+            userType: 'Customer',
+            userId: customerId,
+            cancelledAt: new Date()
+        };
+        
+        await order.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Order cancelled successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+}
+
+// Verify OTP to Complete Order
+module.exports.VerifyOTP = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { otp } = req.body;
+        const customerId = req.customer._id;
+
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            customer: customerId
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        // TODO: Implement OTP verification logic
+        // For now, just complete the order
+        order.orderStatus = "completed";
+        order.paymentStatus = "cod_completed";
+        order.paymentConfirmedBy = {
+            userType: "customer",
+            userId: customerId,
+            confirmedAt: new Date()
+        };
+        
+        await order.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Order completed successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+}
 

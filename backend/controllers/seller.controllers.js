@@ -159,7 +159,7 @@ module.exports.Register = async (req, res) => {
     }
 }
 
-module.exports.VerifyCustomer = async (req, res) => {
+module.exports.VerifySeller = async (req, res) => {
     try{
             const token = req.params.token.trim();
             
@@ -228,7 +228,7 @@ module.exports.Login = async (req, res) => {
 }
 
 module.exports.Logout = async (req, res) => {
-    res.status(200).json({ message: "Customer registered successfully" });
+    res.status(200).json({ message: "Seller logged out successfully" });
 }
 
 
@@ -859,3 +859,142 @@ async function updateProductSales(productId, quantity) {
         console.error("Error updating product sales:", error);
     }
 }
+
+
+
+
+
+
+// Get Seller's Orders
+module.exports.GetOrders = async (req, res) => {
+    try {
+        const sellerId = req.seller._id;
+        const { status } = req.query;
+
+        let query = { seller: sellerId };
+
+        // Filter by status if provided
+        if (status && status !== 'all') {
+            query.orderStatus = status;
+        }
+
+        const orders = await OrderModel.find(query)
+            .populate('customer', 'name phone defaultAddress')
+            .populate('product', 'title images price')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            orders,
+            total: orders.length,
+            message: "Orders fetched successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
+
+// Get Single Order Details
+module.exports.GetOrderDetails = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const sellerId = req.seller._id;
+
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            seller: sellerId
+        })
+        .populate('customer', 'name phone defaultAddress')
+        .populate('product')
+        .populate('chatRoom');
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            order,
+            message: "Order details fetched successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
+
+// Update Order Status
+module.exports.UpdateOrderStatus = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const sellerId = req.seller._id;
+        const { status, note } = req.body;
+
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            seller: sellerId
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        // Validate status transition
+        const validTransitions = {
+            'pending': ['confirmed', 'cancelled'],
+            'confirmed': ['meeting_scheduled', 'cancelled'],
+            'meeting_scheduled': ['ready_for_pickup', 'cancelled'],
+            'ready_for_pickup': ['completed'] // OTP flow handles this
+        };
+
+        if (!validTransitions[order.orderStatus]?.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot change status from ${order.orderStatus} to ${status}`
+            });
+        }
+
+        order.orderStatus = status;
+        order.statusHistory.push({
+            status,
+            timestamp: new Date(),
+            note: note || `Status updated by seller`
+        });
+
+        await order.save();
+
+        // Send system message in chat
+        await MessageModel.create({
+            chatRoom: order.chatRoom,
+            senderType: "system",
+            senderId: sellerId,
+            content: `Order status updated to: ${status}` + (note ? ` - ${note}` : ""),
+            messageType: "system"
+        });
+
+        res.status(200).json({
+            success: true,
+            order,
+            message: "Order status updated successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
