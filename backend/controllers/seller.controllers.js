@@ -118,10 +118,7 @@ module.exports.Register = async (req, res) => {
     <div class="container">
         <table width="100%" cellpadding="0" cellspacing="0" class="header-table">
             <tr>
-                <td style="padding: 20px; font-size: 24px; font-weight: bold;">IAP CELL</td>
-            </tr>
-            <tr>
-                <td style="font-size: 16px;">LOCEAL </td>
+                <td style="padding: 20px; font-size: 24px; font-weight: bold;">LOCEAL</td>
             </tr>
             <tr>
                 <td style="font-size: 16px;">Local Deal</td>
@@ -136,7 +133,7 @@ module.exports.Register = async (req, res) => {
             <p class="message">Please verify your email address to activate your account.</p>
 
             <div style="text-align: center;">
-                <a href="http://localhost:${process.env.PORT}/seller/verifySeller/${token}" class="button">Verify Email</a>
+                <a href="http://localhost:${process.env.FRONTEND_PORT}/seller/verifySeller/${token}" class="button">Verify Email</a>
             </div>
 
             <p class="footer">If you did not sign up for this, you can ignore this email.</p>

@@ -18,7 +18,7 @@ const EmailVerificationSuccess = () => {
   const verifyEmail = async () => {
     try {
       setLoading(true);
-      
+
       if (!token) {
         setSuccess(false);
         setMessage('Invalid verification link');
@@ -27,10 +27,10 @@ const EmailVerificationSuccess = () => {
 
       // Call the backend verification endpoint
       const response = await authAPI.customer.verifyEmail(token);
-      
+
       setSuccess(true);
       setMessage(response.data.message || 'Email verified successfully!');
-      
+
       // Update localStorage if user is logged in
       const userData = JSON.parse(localStorage.getItem('userData'));
       if (userData) {
@@ -40,7 +40,7 @@ const EmailVerificationSuccess = () => {
     } catch (error) {
       setSuccess(false);
       setMessage(
-        error.response?.data?.message || 
+        error.response?.data?.message ||
         'Verification failed. The link may have expired or is invalid.'
       );
     } finally {
@@ -67,9 +67,8 @@ const EmailVerificationSuccess = () => {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className={`w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4 ${
-              success ? 'bg-green-100' : 'bg-red-100'
-            }`}>
+            <div className={`w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4 ${success ? 'bg-green-100' : 'bg-red-100'
+              }`}>
               {success ? (
                 <CheckCircle className="text-green-600 w-8 h-8" />
               ) : (
@@ -93,7 +92,7 @@ const EmailVerificationSuccess = () => {
                   <LogIn className="w-5 h-5" />
                   <span>Sign In to Continue</span>
                 </button>
-                
+
                 <Link
                   to="/"
                   className="w-full btn-secondary flex items-center justify-center space-x-2 py-3"
@@ -111,7 +110,7 @@ const EmailVerificationSuccess = () => {
                   <LogIn className="w-5 h-5" />
                   <span>Go to Login</span>
                 </Link>
-                
+
                 <Link
                   to="/"
                   className="w-full btn-secondary flex items-center justify-center space-x-2 py-3"
