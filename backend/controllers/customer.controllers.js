@@ -30,11 +30,29 @@ module.exports.Register = async (req, res) => {
             })
         }
 
+        const fullAddressObj = {
+            street: defaultAddress.street,
+            city: defaultAddress.city,
+            state: defaultAddress.state,
+            pincode: defaultAddress.pincode,
+            country: "India",
+            landmark: defaultAddress.landmark
+        };
+        
+        let coords = [0, 0];
+        let formattedAddress = fullAddressObj;
+
         // customer does not exists
         const hashPassword = await CustomerModel.hashPassword(req.body.password);
         
-        const {coordinates, address} = await getCoordinatesFromAddress(defaultAddress);
+        const geo = await getCoordinatesFromAddress(fullAddressObj);
+        // console.log(geo);
 
+        coords = geo.coordinates;
+
+        formattedAddress = geo.address;
+        console.log(formattedAddress)
+        
         const customer = new CustomerModel({
             name,
             email,
@@ -42,11 +60,20 @@ module.exports.Register = async (req, res) => {
             phone,
             defaultAddress: {
                 type: "Point",
-                coordinates: coordinates,
-                address: address
+                coordinates: coords,
+                address: {
+                    street: formattedAddress.street,
+                    city: formattedAddress.city,
+                    state: formattedAddress.state,
+                    pincode: formattedAddress.pincode,
+                    country: formattedAddress.country,
+                    landmark: formattedAddress.landmark
+                }
             },
             isVerified: false, // eitu MVP r krne
         });
+
+        console.log(customer)
 
         await customer.save();
 

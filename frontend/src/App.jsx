@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-// import { CartProvider } from './contexts/CartContext';
+import { CartProvider } from './contexts/CartContext';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 
@@ -20,6 +20,13 @@ import CompletedOrders from './pages/Customer/CompletedOrders';
 import Chat from './pages/Customer/Chat';
 
 
+import SellerDashboard from './pages/Seller/SellerDashboard';
+import ProductManagement from './pages/Seller/ProductManagement';
+import SellerOrders from './pages/Seller/SellerOrders';
+import SellerChat from './pages/Seller/SellerChat';
+import AddProduct from './pages/Seller/AddProduct';
+
+
 
 
 import HomePage from './pages/Home/HomePage';
@@ -27,7 +34,7 @@ import HomePage from './pages/Home/HomePage';
 function App() {
   return (
     <AuthProvider>
-      {/* <CartProvider> */}
+      <CartProvider>
         <Router>
           <div className="min-h-screen flex flex-col">
             <Header />
@@ -50,18 +57,18 @@ function App() {
                 <Route path="/customer/chat/:orderId" element={<Chat />} />
 
                 {/* Seller Routes */}
-                {/* <Route path="/seller/dashboard" element={<SellerDashboard />} />
+                <Route path="/seller/dashboard" element={<SellerDashboard />} />
                 <Route path="/seller/products" element={<ProductManagement />} />
                 <Route path="/seller/products/add" element={<AddProduct />} />
                 <Route path="/seller/products/edit/:productId" element={<AddProduct />} />
                 <Route path="/seller/orders" element={<SellerOrders />} />
-                <Route path="/seller/chat/:orderId" element={<SellerChat />} /> */}
+                <Route path="/seller/chat/:orderId" element={<SellerChat />} />
               </Routes>
             </main>
             <Footer />
           </div>
         </Router>
-      {/* </CartProvider> */}
+      </CartProvider>
     </AuthProvider>
   );
 }

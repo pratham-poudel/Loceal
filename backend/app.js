@@ -18,7 +18,10 @@ const sellerRoutes = require("./routes/seller.routes");
 const adminRoutes = require("./routes/admin.routes");
 
 // middlewares
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:5174",  
+    credentials: true
+}));
 app.use(express.json());
 app.use(logger("dev"));
 app.use(cookieParser());
