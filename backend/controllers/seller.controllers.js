@@ -15,7 +15,7 @@ const { getCoordinatesFromAddress } = require("../libs/geocoding");
 module.exports.Register = async (req, res) => {
     try{
         const {name, email, password, phone, location, businessName} = req.body;
-
+        
         const sellerExists = await SellerModel.findOne({email: email});
         
         if(sellerExists){
@@ -25,8 +25,27 @@ module.exports.Register = async (req, res) => {
         }
 
         const hashPassword = await SellerModel.hashPassword(password);
+        
+        const fullAddressObj = {
+            street: location.street,
+            city: location.city,
+            state: location.state,
+            pincode: location.pincode,
+            country: "India",
+            landmark: location.landmark
+        };
+        
+        let coords = [0, 0];
+        let formattedAddress = fullAddressObj;
 
-        const {coordinates, address} = await getCoordinatesFromAddress(location);
+        const geo = await getCoordinatesFromAddress(fullAddressObj);
+        
+        coords = geo.coordinates;
+
+        formattedAddress = geo.address;
+        console.log("Formatted Address:", formattedAddress);
+
+        // console.log(coords)
 
         const seller = new SellerModel({
             name,
@@ -36,8 +55,15 @@ module.exports.Register = async (req, res) => {
             businessName,
             location: {
                 type: "Point",
-                coordinates: coordinates,
-                address: address
+                coordinates: coords,
+                address: {
+                    street: formattedAddress.street,
+                    city: formattedAddress.city,
+                    state: formattedAddress.state,
+                    pincode: formattedAddress.pincode,
+                    country: formattedAddress.country,
+                    landmark: formattedAddress.landmark || null
+                }
             },
             isVerified: false
         });
@@ -233,7 +259,7 @@ module.exports.GetProfile = async (req, res) => {
     try {
     res.json({
       success: true,
-      customer: req.seller
+      seller: req.seller
     });
   } catch (err) {
     res.status(500).json({

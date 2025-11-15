@@ -11,7 +11,7 @@ import { Search, Filter, MapPin, X } from 'lucide-react';
 const ProductList = () => {
   const { location, getCurrentLocation } = useLocation();
   const navigate = useNavigate();
-  
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,35 +36,42 @@ const ProductList = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      
+
       const params = {
-        page: pagination.currentPage,
-        limit: productsPerPage,
-        search: searchQuery,
         sortBy: filters.sortBy,
         maxDistance: filters.maxDistance
       };
 
+      // ✅ REMOVE location check - backend handles fallback!
+      // Just send whatever location we have (even if null)
       if (location) {
         params.lat = location.latitude;
         params.lng = location.longitude;
       }
+      // If location is null, backend will use customer's saved address
 
       if (filters.category) {
         params.category = filters.category;
       }
 
-      const response = await productAPI.getProducts(params);
-      const { products: fetchedProducts, total } = response.data;
+      console.log('📡 API Params:', params);
 
-      setProducts(fetchedProducts);
+      const response = await productAPI.getProducts(params);
+      const { products: allProducts } = response.data;
+
+      // Frontend pagination logic
+      const startIndex = (pagination.currentPage - 1) * productsPerPage;
+      const endIndex = startIndex + productsPerPage;
+      const paginatedProducts = allProducts.slice(startIndex, endIndex);
+
+      setProducts(paginatedProducts);
       setPagination(prev => ({
         ...prev,
-        totalPages: Math.ceil(total / productsPerPage),
-        totalProducts: total
+        totalPages: Math.ceil(allProducts.length / productsPerPage),
+        totalProducts: allProducts.length
       }));
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('❌ Error fetching products:', error);
     } finally {
       setLoading(false);
     }
@@ -188,7 +195,7 @@ const ProductList = () => {
           <p className="text-gray-600">
             Showing {products.length} of {pagination.totalProducts} products
           </p>
-          
+
           {/* Sort Options */}
           <select
             value={filters.sortBy}
@@ -239,7 +246,7 @@ const ProductList = () => {
             <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
             <p className="text-gray-600 mb-6">
-              {location 
+              {location
                 ? "Try adjusting your search criteria or increasing the distance range."
                 : "Enable location access to see products in your area."
               }

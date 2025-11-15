@@ -24,7 +24,7 @@ router.get("/products/:productId", authCustomer, customerController.GetProductDe
 // get cart details
 router.get("/cart", authCustomer, customerController.GetCart);
 // add to cart
-router.get("/cart/add", authCustomer, customerController.AddToCart);
+router.post("/cart/add", authCustomer, customerController.AddToCart);
 // remove from cart
 router.delete("/cart/remove/:productId", authCustomer, customerController.RemoveFromCart);
 // update cart item quantity
@@ -42,6 +42,11 @@ router.get("/orders/active", authCustomer, customerController.GetActiveOrders);
 
 // Cancel order
 router.put("/orders/:orderId/cancel", authCustomer, customerController.CancelOrder);
+
+// Have to implement this
+router.get("/orders/completed", authCustomer, customerController.GetCompletedOrders);
+
+
 
 // Verify OTP to complete order  
 router.post("/orders/:orderId/verify-otp", authCustomer, customerController.VerifyOTP);

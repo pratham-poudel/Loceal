@@ -74,10 +74,11 @@ export const orderAPI = {
 
 export const sellerAPI = {
   getProducts: () => api.get('/seller/products'),
+  getProduct: (id) => api.get(`/seller/products/${id}`),
   createProduct: (data) => api.post('/seller/products', data),
   updateProduct: (id, data) => api.put(`/seller/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/seller/products/${id}`),
-  getOrders: () => api.get('/seller/orders'),
+  getOrders: (params) => api.get('/seller/orders', {params}),
   initiatePayment: (id) => api.post(`/seller/orders/${id}/initiate-payment`),
   verifyOTP: (id, otp) => api.post(`/seller/orders/${id}/verify-otp`, { otp }),
 };

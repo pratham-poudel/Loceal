@@ -20,8 +20,9 @@ const MessageModel = require('./models/message.model');
 // Initialize Socket.io
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000", // Your frontend URL
-    methods: ["GET", "POST"]
+    origin: `http://localhost:${process.env.FRONTEND_PORT || 3000}`, // Your frontend URL
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 

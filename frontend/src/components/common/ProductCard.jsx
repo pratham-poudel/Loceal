@@ -1,7 +1,6 @@
 // src/components/common/ProductCard.jsx
 import React from 'react';
-import { Package, Star, MapPin } from 'lucide-react';
-
+import { Package, Star, MapPin } from 'lucide-react'; 
 const ProductCard = ({ product, onViewDetails, onAddToCart }) => {
   const {
     _id,
@@ -14,6 +13,32 @@ const ProductCard = ({ product, onViewDetails, onAddToCart }) => {
     sellerLocation,
     stock
   } = product;
+
+  // ✅ ADD: Extract address string from sellerLocation object
+  const getLocationText = () => {
+    if (!sellerLocation) return null;
+    
+    if (typeof sellerLocation === 'string') {
+      return sellerLocation;
+    }
+    
+    // Handle address object structure
+    if (sellerLocation.address) {
+      return sellerLocation.address;
+    }
+    
+    if (sellerLocation.street && sellerLocation.city) {
+      return `${sellerLocation.street}, ${sellerLocation.city}`;
+    }
+    
+    if (sellerLocation.street) {
+      return sellerLocation.street;
+    }
+    
+    return 'Location available';
+  };
+
+  const locationText = getLocationText();
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
@@ -85,9 +110,9 @@ const ProductCard = ({ product, onViewDetails, onAddToCart }) => {
         </div>
 
         {/* Location */}
-        {sellerLocation && (
+        {locationText && (
           <p className="text-xs text-gray-500 mb-3 line-clamp-1">
-            {sellerLocation}
+            {locationText}
           </p>
         )}
 

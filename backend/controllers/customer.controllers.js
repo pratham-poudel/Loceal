@@ -8,7 +8,7 @@ const ChatRoomModel = require("../models/chatRoom.model");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../libs/nodemailer");
 const fs = require("fs");
-const path = require("path"); 
+const path = require("path");
 const crypto = require("crypto");
 const { getCoordinatesFromAddress } = require("../libs/geocoding");
 const { default: mongoose } = require("mongoose");
@@ -16,15 +16,15 @@ const { createTransport } = require("nodemailer");
 const orderModel = require("../models/order.model");
 
 module.exports.Register = async (req, res) => {
-    try{
+    try {
         console.log(req.body);
-        
-        const {name, email, password, phone, defaultAddress} = req.body;
 
-        const customerExists = await CustomerModel.findOne({email: req.body.email});
+        const { name, email, password, phone, defaultAddress } = req.body;
+
+        const customerExists = await CustomerModel.findOne({ email: req.body.email });
 
         // customer exits
-        if(customerExists){
+        if (customerExists) {
             return res.status(400).json({
                 message: "Sign In Error Occurred"
             })
@@ -38,13 +38,13 @@ module.exports.Register = async (req, res) => {
             country: "India",
             landmark: defaultAddress.landmark
         };
-        
+
         let coords = [0, 0];
         let formattedAddress = fullAddressObj;
 
         // customer does not exists
         const hashPassword = await CustomerModel.hashPassword(req.body.password);
-        
+
         const geo = await getCoordinatesFromAddress(fullAddressObj);
         // console.log(geo);
 
@@ -52,7 +52,7 @@ module.exports.Register = async (req, res) => {
 
         formattedAddress = geo.address;
         console.log(formattedAddress)
-        
+
         const customer = new CustomerModel({
             name,
             email,
@@ -67,7 +67,7 @@ module.exports.Register = async (req, res) => {
                     state: formattedAddress.state,
                     pincode: formattedAddress.pincode,
                     country: formattedAddress.country,
-                    landmark: formattedAddress.landmark
+                    landmark: formattedAddress.landmark || null
                 }
             },
             isVerified: false, // eitu MVP r krne
@@ -182,7 +182,7 @@ module.exports.Register = async (req, res) => {
             customer,
             token
         })
-    }catch(err){
+    } catch (err) {
         res.status(500).json({
             error: err.message
         })
@@ -190,10 +190,10 @@ module.exports.Register = async (req, res) => {
 }
 
 module.exports.VerifyCustomer = async (req, res) => {
-    try{
+    try {
         const token = req.params.token.trim();
-        
-        if(!token){
+
+        if (!token) {
             return res.status(401).json({
                 message: "Unauthorized. No token provided."
             })
@@ -201,7 +201,7 @@ module.exports.VerifyCustomer = async (req, res) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        if(!decoded || !decoded._id){
+        if (!decoded || !decoded._id) {
             return res.status(401).json({
                 message: "Unauthorized. Invalid token."
             })
@@ -211,7 +211,7 @@ module.exports.VerifyCustomer = async (req, res) => {
 
         const customer = await CustomerModel.findById(decoded._id);
 
-        if(!customer){
+        if (!customer) {
             return res.status(404).json({
                 message: "Customer not found."
             })
@@ -223,7 +223,7 @@ module.exports.VerifyCustomer = async (req, res) => {
         res.status(200).json({
             message: "Customer verified successfully."
         })
-    }catch(err){
+    } catch (err) {
         return res.status(500).json({
             error: err.message
         })
@@ -231,11 +231,11 @@ module.exports.VerifyCustomer = async (req, res) => {
 }
 
 module.exports.Login = async (req, res) => {
-    const {email, password} = req.body;
+    const { email, password } = req.body;
 
-    const customer = await CustomerModel.findOne({email: email}).select("+password");
+    const customer = await CustomerModel.findOne({ email: email }).select("+password");
 
-    if(!customer){
+    if (!customer) {
         return res.status(400).json({
             message: "Customer not found"
         })
@@ -243,7 +243,7 @@ module.exports.Login = async (req, res) => {
 
     const validPassword = await customer.comparePassword(password);
 
-    if(!validPassword){
+    if (!validPassword) {
         return res.status(400).json({
             message: "Invalid Credentials"
         })
@@ -261,7 +261,7 @@ module.exports.Login = async (req, res) => {
 
 module.exports.Logout = async (req, res) => {
     res.clearCookie("token");
-    
+
     res.status(200).json({
         message: "Customer logged out successfully"
     })
@@ -270,49 +270,70 @@ module.exports.Logout = async (req, res) => {
 
 module.exports.GetProfile = async (req, res) => {
     try {
-    res.json({
-      success: true,
-      customer: req.customer
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
-  }
+        res.json({
+            success: true,
+            customer: req.customer
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
 }
 
 
 // Products
 module.exports.GetProducts = async (req, res) => {
-    try{
-        const {lat, lng, maxDistance=50} = req.query;
+    try {
+        const { lat, lng, maxDistance = 50, sortBy = 'distance', category } = req.query;
+        const customerId = req.customer._id; // Get customer ID from auth
 
-        // validating coordinates
-        if(!lat || !lng){
-            return res.status(400).json({
-                success: false,
-                message: "Latitude and Longitude are required"
-            });
+        let searchLat, searchLng;
+
+        // Priority 1: Use provided coordinates from frontend
+        if (lat && lng) {
+            searchLat = parseFloat(lat);
+            searchLng = parseFloat(lng);
+            console.log('📍 Using provided coordinates:', searchLat, searchLng);
+        }
+        // Priority 2: Use customer's saved address coordinates from database
+        else {
+            // Fetch customer with their saved address
+            const customer = await CustomerModel.findById(customerId).select('defaultAddress');
+
+            if (customer && customer.defaultAddress && customer.defaultAddress.coordinates) {
+                searchLng = customer.defaultAddress.coordinates[0]; // longitude
+                searchLat = customer.defaultAddress.coordinates[1]; // latitude
+                console.log('🏠 Using saved address coordinates:', searchLat, searchLng);
+            } else {
+                // Priority 3: Use default coordinates as last resort
+                searchLat = 28.6139; // Default Delhi latitude
+                searchLng = 77.2090; // Default Delhi longitude  
+                console.log('🌍 Using default coordinates:', searchLat, searchLng);
+            }
         }
 
-        const customerCoordinates = [parseFloat(lng), parseFloat(lat)];
+        const customerCoordinates = [searchLng, searchLat];
+        console.log(customerCoordinates);
 
         // find seller within the radis
         const nearbySellers = await SellerModel.find({
-            "location.coordinates": {
+            "location": {
                 $nearSphere: {
                     $geometry: {
                         type: "Point",
                         coordinates: customerCoordinates
                     },
-                    $maxDistance: maxDistance*1000 // km 2 m bonalu
+                    $maxDistance: maxDistance * 1000 // km 2 m bonalu
                 }
             },
             isVerified: true
         }).select("_id businessName rating location");
 
-        if(nearbySellers.length === 0){
+        console.log(nearbySellers);
+
+        if (nearbySellers.length === 0) {
             return res.status(200).json({
                 success: true,
                 products: [],
@@ -336,13 +357,13 @@ module.exports.GetProducts = async (req, res) => {
             isAvailable: true,
             stock: { $gt: 0 }
         })
-        .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 });
 
         //calculate approximate distance for each product
         const productsWithLocation = products.map(product => {
             const seller = nearbySellers.find(s => s._id.toString() === product.seller._id.toString());
-            
-            if(!seller)
+
+            if (!seller)
                 return null;
 
             // Simple distance calculation (approximate)
@@ -350,18 +371,18 @@ module.exports.GetProducts = async (req, res) => {
                 const R = 6371; // Earth's radius in km
                 const dLat = (lat2 - lat1) * Math.PI / 180;
                 const dLon = (lon2 - lon1) * Math.PI / 180;
-                const a = 
-                    Math.sin(dLat/2) * Math.sin(dLat/2) +
-                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                    Math.sin(dLon/2) * Math.sin(dLon/2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const a =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                 return R * c; // Distance in km
             };
 
             const sellerCoords = seller.location.coordinates;
             const distance = calculateDistance(
-                parseFloat(lat), 
-                parseFloat(lng), 
+                parseFloat(lat),
+                parseFloat(lng),
                 sellerCoords[1], // latitude
                 sellerCoords[0]  // longitude
             );
@@ -376,6 +397,27 @@ module.exports.GetProducts = async (req, res) => {
         // Sort by distance (nearest first)
         productsWithLocation.sort((a, b) => a.distance - b.distance);
 
+        // Apply sorting
+        switch (sortBy) {
+            case 'distance':
+                productsWithLocation.sort((a, b) => a.distance - b.distance);
+                break;
+            case 'price_asc':
+                productsWithLocation.sort((a, b) => a.price - b.price);
+                break;
+            case 'price_desc':
+                productsWithLocation.sort((a, b) => b.price - a.price);
+                break;
+            case 'rating':
+                productsWithLocation.sort((a, b) => (b.rating?.average || 0) - (a.rating?.average || 0));
+                break;
+            case 'newest':
+                productsWithLocation.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                break;
+            default:
+                productsWithLocation.sort((a, b) => a.distance - b.distance);
+        }
+
         res.status(200).json({
             success: true,
             products: productsWithLocation,
@@ -387,20 +429,20 @@ module.exports.GetProducts = async (req, res) => {
             },
             message: `Found ${productsWithLocation.length} products from ${nearbySellers.length} nearby sellers within ${maxDistance}km`
         });
-    }catch(err){
+    } catch (err) {
         return res.status(500).json({
-            success: false,  
+            success: false,
             error: err.message
         })
     }
 }
 
 module.exports.GetProductDetails = async (req, res) => {
-    try{
-        const {productId} = req.params;
+    try {
+        const { productId } = req.params;
 
         // validating product Id
-        if(!mongoose.Types.ObjectId.isValid(productId)){
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid Product ID"
@@ -408,7 +450,7 @@ module.exports.GetProductDetails = async (req, res) => {
         }
 
         const product = await ProductModel.findById(productId)
-        .populate("seller", "businessName rating totalSale location phone");
+            .populate("seller", "businessName rating totalSale location phone");
 
         // such product not found
         if (!product) {
@@ -435,7 +477,7 @@ module.exports.GetProductDetails = async (req, res) => {
             product,
             message: "Product details fetched successfully"
         });
-    }catch(err){
+    } catch (err) {
         return res.status(500).json({
             success: false,
             error: err.message
@@ -446,12 +488,13 @@ module.exports.GetProductDetails = async (req, res) => {
 
 // Cart 
 module.exports.AddToCart = async (req, res) => {
-    try{
-        const {productId, quantity = 1} = req.body;
+    try {
+        const { productId, quantity = 1 } = req.body;
         const customerId = req.customer._id;
 
+        // console.log("Yo")
         // validating input
-        if(!productId){
+        if (!productId) {
             return res.status(400).json({
                 success: false,
                 message: "Product ID is required"
@@ -461,30 +504,44 @@ module.exports.AddToCart = async (req, res) => {
         // checking if product tu ase ne nai aru available oo ase ne nai
         const product = await ProductModel.findById(productId);
 
-        if(!product){
+        if (!product) {
             return res.status(404).json({
                 success: false,
                 message: "Product not found"
             });
         }
 
-        if(!product.isAvailable || product.stock <= 0){
+        // console.log("YO")
+
+        if (!product.isAvailable || product.stock <= 0) {
             return res.status(400).json({
                 success: false,
                 message: "Product is currently unavailable"
             });
         }
+        console.log("YO1")
 
         // check id product tu verified seller r hoi ne naa
-        if(!product.seller.isVerified){
+        const seller = await SellerModel.findById(product.seller);
+
+        if (!seller) {
+            return res.status(404).json({
+                success: false,
+                message: "Seller not found"
+            });
+        }
+
+        if (!seller.isVerified) {
             return res.status(400).json({
                 success: false,
                 message: "Cannot add products from unverified sellers to cart"
             });
         }
-        
+
+        console.log("YO2")
+
         // checking ki requested quanity available ase ne nai
-        if(quantity > product.stock){
+        if (quantity > product.stock) {
             return res.status(400).json({
                 success: false,
                 message: `Only ${product.stock} items are available in stock`
@@ -492,10 +549,10 @@ module.exports.AddToCart = async (req, res) => {
         }
 
         // find or create -> customer krne
-        let cart = await CartModel.findOne({customer: customerId});
+        let cart = await CartModel.findOne({ customer: customerId });
 
         // cart nai iyar
-        if(!cart){
+        if (!cart) {
             cart = new CartModel({
                 customer: customerId,
                 items: []
@@ -507,11 +564,11 @@ module.exports.AddToCart = async (req, res) => {
             item => item.product.toString() === productId
         );
 
-        if(existingItemIndex > -1){
+        if (existingItemIndex > -1) {
             // new quantity loi update mar
             const newQuantity = cart.items[existingItemIndex].quantity + quantity;
 
-            if(newQuantity > product.stock){
+            if (newQuantity > product.stock) {
                 return res.status(400).json({
                     success: false,
                     message: `Only ${product.stock} items are available in stock`
@@ -521,7 +578,7 @@ module.exports.AddToCart = async (req, res) => {
             // update price in case it changed
             cart.items[existingItemIndex].quantity = newQuantity;
             cart.items[existingItemIndex].priceAtAdd = product.price;
-        }else{
+        } else {
             // new item cart t
             cart.items.push({
                 product: productId,
@@ -543,7 +600,7 @@ module.exports.AddToCart = async (req, res) => {
             cart,
             message: "Product added to cart successfully"
         });
-    }catch(err){
+    } catch (err) {
         return res.status(500).json({
             success: false,
             error: err.message
@@ -552,17 +609,17 @@ module.exports.AddToCart = async (req, res) => {
 }
 
 module.exports.GetCart = async (req, res) => {
-    try{
+    try {
         const customerId = req.customer._id;
 
         const cart = await CartModel.findOne({
             customer: customerId
         })
-        .populate("items.product", "title price images unit stock isAvailable")
-        .populate("items.seller", "businessName rating");
+            .populate("items.product", "title price images unit stock isAvailable")
+            .populate("items.seller", "businessName rating");
 
-        
-        if(!cart){
+
+        if (!cart) {
             return res.status(200).json({
                 success: true,
                 cart: {
@@ -573,11 +630,11 @@ module.exports.GetCart = async (req, res) => {
             });
         }
 
-        
+
         // total price calc kor
         let total = 0;
         cart.items.forEach(item => {
-            total += item.priceAtAdd*item.quantity;
+            total += item.priceAtAdd * item.quantity;
         });
 
         res.status(200).json({
@@ -588,7 +645,7 @@ module.exports.GetCart = async (req, res) => {
             },
             message: "Cart fetched successfully"
         });
-    }catch(err){
+    } catch (err) {
         return res.status(500).json({
             success: false,
             error: err.message
@@ -597,15 +654,15 @@ module.exports.GetCart = async (req, res) => {
 }
 
 module.exports.RemoveFromCart = async (req, res) => {
-    try{
+    try {
         const customerId = req.customer._id;
-        const {productId} = req.params;
+        const { productId } = req.params;
 
         const cart = await CartModel.findOne({
             customer: customerId
         });
 
-        if(!cart){
+        if (!cart) {
             return res.status(404).json({
                 success: false,
                 message: "Cart not found"
@@ -616,7 +673,7 @@ module.exports.RemoveFromCart = async (req, res) => {
         cart.items = cart.items.filter(item =>
             item.product.toString() !== productId
         )
-        
+
 
         await cart.save();
 
@@ -626,7 +683,7 @@ module.exports.RemoveFromCart = async (req, res) => {
         await cart.populate("items.seller", "businessName rating");
 
         let total = 0;
-        for(const item of cart.items){
+        for (const item of cart.items) {
             total += item.priceAtAdd * item.quantity;
         }
 
@@ -638,7 +695,7 @@ module.exports.RemoveFromCart = async (req, res) => {
             },
             message: "Product removed from cart successfully"
         });
-    }catch(err){
+    } catch (err) {
         return res.status(500).json({
             success: false,
             error: err.message
@@ -647,10 +704,10 @@ module.exports.RemoveFromCart = async (req, res) => {
 }
 
 module.exports.UpdateCartItem = async (req, res) => {
-    try{
+    try {
         const customerId = req.customer._id;
-        const {productId} = req.params;
-        const {quantity} = req.body;
+        const { productId } = req.params;
+        const { quantity } = req.body;
 
         // validating input
         if (!quantity || quantity < 1) {
@@ -665,13 +722,13 @@ module.exports.UpdateCartItem = async (req, res) => {
             customer: customerId
         });
 
-        
+
         // find the item in the cart
         const cartItem = cart.items.find(item =>
             item.product.toString() === productId
         );
 
-        if(!cartItem){
+        if (!cartItem) {
             return res.status(404).json({
                 success: false,
                 message: "Product not found in cart"
@@ -682,7 +739,7 @@ module.exports.UpdateCartItem = async (req, res) => {
         // check product availability and stock
         const product = await ProductModel.findById(productId);
 
-        if(!product || quantity > product.stock){
+        if (!product || quantity > product.stock) {
             return res.status(400).json({
                 success: false,
                 message: `Only ${product.stock} items are available in stock`
@@ -699,7 +756,7 @@ module.exports.UpdateCartItem = async (req, res) => {
         await cart.populate("items.seller", "businessName rating");
 
         let total = 0;
-        for(const item of cart.items){
+        for (const item of cart.items) {
             total += item.priceAtAdd * item.quantity;
         }
 
@@ -711,7 +768,7 @@ module.exports.UpdateCartItem = async (req, res) => {
             },
             message: "Cart item updated successfully"
         });
-    }catch(err){
+    } catch (err) {
         return res.status(500).json({
             success: false,
             error: err.message
@@ -720,12 +777,12 @@ module.exports.UpdateCartItem = async (req, res) => {
 }
 
 module.exports.ClearCart = async (req, res) => {
-    try{
-        customerId = req.customer._id;
+    try {
+        const customerId = req.customer._id;
 
-        const cart = await CartModel.findOne({customer: customerId});
+        const cart = await CartModel.findOne({ customer: customerId });
 
-        if(!cart){
+        if (!cart) {
             return res.status(404).json({
                 success: false,
                 message: "Cart not found"
@@ -734,7 +791,7 @@ module.exports.ClearCart = async (req, res) => {
 
         // clear all items
         cart.items = [];
-        
+
         await cart.save();
 
         res.status(200).json({
@@ -745,7 +802,7 @@ module.exports.ClearCart = async (req, res) => {
             },
             message: "Cart cleared successfully"
         });
-    }catch(err){
+    } catch (err) {
         return res.status(500).json({
             success: false,
             error: err.message
@@ -755,17 +812,22 @@ module.exports.ClearCart = async (req, res) => {
 
 
 // Orders
-module.exports.CreateOrder = async(req, res) => {
-    try{
+module.exports.CreateOrder = async (req, res) => {
+    try {
         customerId = req.customer._id;
-        const {productId} = req.body;
+        const { productId } = req.body;
+
+        //  await CartModel.findOneAndUpdate(
+        //     { customer: customerId },
+        //     { $pull: { items: { product: productId } } }
+        // );
 
         // get customer's cart
-        const cart = await CartModel.findOne({customer: customerId})
-                                    .populate("items.product")
-                                    .populate("items.seller"); 
-                                
-        
+        const cart = await CartModel.findOne({ customer: customerId })
+            .populate("items.product")
+            .populate("items.seller");
+
+
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -775,7 +837,7 @@ module.exports.CreateOrder = async(req, res) => {
 
         // Find the specific product in cart
         const cartItem = cart.items.find(item => item.product._id.toString() === productId);
-        
+
         if (!cartItem) {
             return res.status(404).json({
                 success: false,
@@ -831,7 +893,7 @@ module.exports.CreateOrder = async(req, res) => {
             chatRoom,
             message: "Order created successfully. You can now chat with the seller."
         });
-    }catch(err){
+    } catch (err) {
         res.status(500).json({
             success: false,
             error: err.message
@@ -839,19 +901,18 @@ module.exports.CreateOrder = async(req, res) => {
     }
 }
 
-// (pending, confirmed, meeting_scheduled) <-> Active Orders
-module.exports.GetActiveOrders = async(req, res) => {
-    try{
+module.exports.GetActiveOrders = async (req, res) => {
+    try {
         const customerId = req.customer._id;
 
         const activeOrders = await OrderModel.find({
             customer: customerId,
             orderStatus: { $in: ["pending", "confirmed", "meeting_scheduled"] }
         })
-        .populate('seller', 'businessName')
-        .populate('product', 'title images')
-        .populate('chatRoom')
-        .sort({ createdAt: -1 });
+            .populate('seller', 'businessName')
+            .populate('product', 'title images')
+            .populate('chatRoom')
+            .sort({ createdAt: -1 });
 
 
         res.status(200).json({
@@ -860,7 +921,7 @@ module.exports.GetActiveOrders = async(req, res) => {
             total: activeOrders.length,
             message: "Active orders retrieved successfully"
         });
-    }catch(err){
+    } catch (err) {
         res.status(500).json({
             success: false,
             error: err.message
@@ -870,17 +931,17 @@ module.exports.GetActiveOrders = async(req, res) => {
 
 
 // Get Completed Orders (for review/report)
-module.exports.GetCompletedOrders = async(req, res) => {
-    try{
+module.exports.GetCompletedOrders = async (req, res) => {
+    try {
         const customerId = req.customer._id;
 
         const completedOrders = await OrderModel.find({
             customer: customerId,
             orderStatus: "completed"
         })
-        .populate('seller', 'businessName')
-        .populate('product', 'title images')
-        .sort({ createdAt: -1 });
+            .populate('seller', 'businessName')
+            .populate('product', 'title images')
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,
@@ -888,7 +949,7 @@ module.exports.GetCompletedOrders = async(req, res) => {
             total: completedOrders.length,
             message: "Completed orders retrieved successfully"
         });
-    }catch(err){
+    } catch (err) {
         res.status(500).json({
             success: false,
             error: err.message
@@ -907,9 +968,9 @@ exports.getOrderWithChat = async (req, res) => {
             _id: orderId,
             customer: customerId
         })
-        .populate('seller', 'businessName phone location')
-        .populate('product')
-        .populate('chatRoom');
+            .populate('seller', 'businessName phone location')
+            .populate('product')
+            .populate('chatRoom');
 
         if (!order) {
             return res.status(404).json({
@@ -966,7 +1027,7 @@ module.exports.CancelOrder = async (req, res) => {
             userId: customerId,
             cancelledAt: new Date()
         };
-        
+
         await order.save();
 
         res.status(200).json({
@@ -1010,7 +1071,7 @@ module.exports.VerifyOTP = async (req, res) => {
             userId: customerId,
             confirmedAt: new Date()
         };
-        
+
         await order.save();
 
         res.status(200).json({

@@ -17,3 +17,17 @@ module.exports.VerifyOTP = async (req, res) => {
 module.exports.CancelOrder = async (req, res) => {
     // Cancel active orders
 }
+
+
+// otpSchema addtion later
+
+
+
+// Have to implement this
+router.get("/orders/completed", authCustomer, customerController.GetCompletedOrders);
+
+
+// Proceeding from cart -> only one product added into the active order (bug) -> Have to fix this
+
+// Same item adding to cart many times -> not allowed 😅 -> or future prespective😂
+

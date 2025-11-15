@@ -112,7 +112,7 @@ SellerSchema.methods.generateAuthToken = function(){
     return token;
 }
 
-SellerSchema.methods.hashPassword = async function(password){
+SellerSchema.statics.hashPassword = async function(password){
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     return hashedPassword;

@@ -84,7 +84,7 @@ const ActiveOrders = () => {
                 onCancel={handleCancelOrder}
                 onChat={handleChat}
                 showActions={true}
-                isCancelling={cancellingOrder === order._id}
+                // isCancelling={cancellingOrder === order._id} - might add later
               />
             ))}
           </div>
