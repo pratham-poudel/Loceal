@@ -379,11 +379,15 @@ module.exports.GetProductDetails = async (req, res) => {
         const { productId } = req.params;
         const sellerId = req.seller._id;
 
-        console,log("Milk CHoco")
+        console.log("This is for fetching produt Details ONLY")
         const product = await ProductModel.findOne({
             _id: productId,
             seller: sellerId
         });
+
+        console.log(sellerId)
+        console.log(productId)
+        console.log(product)
 
         if (!product) {
             return res.status(404).json({
@@ -1036,3 +1040,36 @@ module.exports.UpdateOrderStatus = async (req, res) => {
     }
 };
 
+
+module.exports.GetOrderWithChat = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const sellerId = req.seller._id;
+
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            seller: sellerId
+        })
+            .populate('customer', 'name phone defaultAddress')
+            .populate('product')
+            .populate('chatRoom');
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            order
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}

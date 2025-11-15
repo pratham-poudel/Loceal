@@ -492,6 +492,8 @@ module.exports.AddToCart = async (req, res) => {
         const { productId, quantity = 1 } = req.body;
         const customerId = req.customer._id;
 
+        // console.log(productId, quantity, customerId)
+
         // console.log("Yo")
         // validating input
         if (!productId) {
@@ -503,6 +505,8 @@ module.exports.AddToCart = async (req, res) => {
 
         // checking if product tu ase ne nai aru available oo ase ne nai
         const product = await ProductModel.findById(productId);
+
+        // console.log(product)
 
         if (!product) {
             return res.status(404).json({
@@ -612,6 +616,8 @@ module.exports.GetCart = async (req, res) => {
     try {
         const customerId = req.customer._id;
 
+        console.log("In Get Cart")
+        
         const cart = await CartModel.findOne({
             customer: customerId
         })
