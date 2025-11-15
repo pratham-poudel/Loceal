@@ -8,24 +8,24 @@ const ProductModel = require("../models/product.model");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../libs/nodemailer");
 const fs = require("fs");
-const path = require("path"); 
+const path = require("path");
 const crypto = require("crypto");
 const { getCoordinatesFromAddress } = require("../libs/geocoding");
 
 module.exports.Register = async (req, res) => {
-    try{
-        const {name, email, password, phone, location, businessName} = req.body;
-        
-        const sellerExists = await SellerModel.findOne({email: email});
-        
-        if(sellerExists){
+    try {
+        const { name, email, password, phone, location, businessName } = req.body;
+
+        const sellerExists = await SellerModel.findOne({ email: email });
+
+        if (sellerExists) {
             return res.status(400).json({
                 message: "Seller with this email already exists"
             })
         }
 
         const hashPassword = await SellerModel.hashPassword(password);
-        
+
         const fullAddressObj = {
             street: location.street,
             city: location.city,
@@ -34,12 +34,12 @@ module.exports.Register = async (req, res) => {
             country: "India",
             landmark: location.landmark
         };
-        
+
         let coords = [0, 0];
         let formattedAddress = fullAddressObj;
 
         const geo = await getCoordinatesFromAddress(fullAddressObj);
-        
+
         coords = geo.coordinates;
 
         formattedAddress = geo.address;
@@ -175,7 +175,7 @@ module.exports.Register = async (req, res) => {
             seller,
             token
         })
-    }catch(err){
+    } catch (err) {
         return res.status(500).json({
             error: err.message
         })
@@ -183,71 +183,71 @@ module.exports.Register = async (req, res) => {
 }
 
 module.exports.VerifySeller = async (req, res) => {
-    try{
-            const token = req.params.token.trim();
-            
-            if(!token){
-                return res.status(401).json({
-                    message: "Unauthorized. No token provided."
-                })
-            }
-    
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-            if(!decoded || !decoded._id){
-                return res.status(401).json({
-                    message: "Unauthorized. Invalid token."
-                })
-            }
-    
-            const seller = await SellerModel.findById(decoded._id);
-    
-            if(!seller){
-                return res.status(404).json({
-                    message: "Seller not found."
-                })
-            }
-    
-            seller.isVerified = true;
-            await seller.save();
-    
-            res.status(200).json({
-                message: "Seller verified successfully."
-            })
-        }catch(err){
-            return res.status(500).json({
-                error: err.message
+    try {
+        const token = req.params.token.trim();
+
+        if (!token) {
+            return res.status(401).json({
+                message: "Unauthorized. No token provided."
             })
         }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (!decoded || !decoded._id) {
+            return res.status(401).json({
+                message: "Unauthorized. Invalid token."
+            })
+        }
+
+        const seller = await SellerModel.findById(decoded._id);
+
+        if (!seller) {
+            return res.status(404).json({
+                message: "Seller not found."
+            })
+        }
+
+        seller.isVerified = true;
+        await seller.save();
+
+        res.status(200).json({
+            message: "Seller verified successfully."
+        })
+    } catch (err) {
+        return res.status(500).json({
+            error: err.message
+        })
+    }
 }
 
 module.exports.Login = async (req, res) => {
-    const {email, password} = req.body;
-    
-        const seller = await SellerModel.findOne({email: email}).select("+password");
-    
-        if(!seller){
-            return res.status(400).json({
-                message: "Seller not found"
-            })
-        }
-    
-        const validPassword = await seller.comparePassword(password);
-    
-        if(!validPassword){
-            return res.status(400).json({
-                message: "Invalid Credentials"
-            })
-        }
-    
-        const token = seller.generateAuthToken();
-        res.cookie("token", token);
-    
-        res.status(200).json({
-            message: "Seller logged in successfully",
-            seller,
-            token
-        });
+    const { email, password } = req.body;
+
+    const seller = await SellerModel.findOne({ email: email }).select("+password");
+
+    if (!seller) {
+        return res.status(400).json({
+            message: "Seller not found"
+        })
+    }
+
+    const validPassword = await seller.comparePassword(password);
+
+    if (!validPassword) {
+        return res.status(400).json({
+            message: "Invalid Credentials"
+        })
+    }
+
+    const token = seller.generateAuthToken();
+    res.cookie("token", token);
+
+    res.status(200).json({
+        message: "Seller logged in successfully",
+        seller,
+        token
+    });
 }
 
 module.exports.Logout = async (req, res) => {
@@ -257,16 +257,16 @@ module.exports.Logout = async (req, res) => {
 
 module.exports.GetProfile = async (req, res) => {
     try {
-    res.json({
-      success: true,
-      seller: req.seller
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
-  }
+        res.json({
+            success: true,
+            seller: req.seller
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
 }
 
 
@@ -275,8 +275,8 @@ module.exports.GetProducts = async (req, res) => {
         const sellerId = req.seller._id;
         const { search = "", category = "" } = req.query;
 
-        const query = { 
-            seller: sellerId 
+        const query = {
+            seller: sellerId
         };
 
         // Add search filter
@@ -379,6 +379,7 @@ module.exports.GetProductDetails = async (req, res) => {
         const { productId } = req.params;
         const sellerId = req.seller._id;
 
+        console,log("Milk CHoco")
         const product = await ProductModel.findOne({
             _id: productId,
             seller: sellerId
@@ -426,7 +427,7 @@ module.exports.UpdateProduct = async (req, res) => {
 
         // Fields that can be updated
         const allowedUpdates = [
-            'title', 'description', 'category', 'subCategory', 
+            'title', 'description', 'category', 'subCategory',
             'price', 'unit', 'minimumOrder', 'stock', 'expiryDate', 'tags'
         ];
 
@@ -581,7 +582,7 @@ module.exports.InitiatePayment = async (req, res) => {
             _id: orderId,
             seller: sellerId
         }).populate('customer', 'name email phone')
-          .populate('seller', 'businessName');
+            .populate('seller', 'businessName');
 
         if (!order) {
             return res.status(404).json({
@@ -600,7 +601,7 @@ module.exports.InitiatePayment = async (req, res) => {
 
         // Generate OTP (6-digit)
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        
+
         // Store OTP in order
         order.otp = {
             code: otp,
@@ -752,7 +753,7 @@ module.exports.InitiatePayment = async (req, res) => {
         console.log(`📧 OTP sent to ${order.customer.email}: ${otp}`);
         console.log(`📱 Order: ${order.orderNumber}, Customer: ${order.customer.name}`);
 
-        res.json({ 
+        res.json({
             success: true,
             message: "OTP sent to customer successfully",
             order: {
@@ -833,7 +834,7 @@ module.exports.VerifyOTP = async (req, res) => {
 
         // Update seller stats (you'll need to implement this)
         await updateSellerStats(order.seller, order.totalAmount);
-        
+
         // Update product sales count
         await updateProductSales(order.product, order.quantity);
 
@@ -904,20 +905,21 @@ async function updateProductSales(productId, quantity) {
 module.exports.GetOrders = async (req, res) => {
     try {
         const sellerId = req.seller._id;
-        const { status } = req.query;
+        console.log(sellerId)
 
-        let query = { seller: sellerId };
+        // // Filter by status if provided
+        // if (status && status !== 'all') {
+        //     query.orderStatus = status;
+        // }
 
-        // Filter by status if provided
-        if (status && status !== 'all') {
-            query.orderStatus = status;
-        }
+        // console.log("Yo")
 
-        const orders = await OrderModel.find(query)
-            .populate('customer', 'name phone defaultAddress')
-            .populate('product', 'title images price')
-            .sort({ createdAt: -1 });
+        const orders = await OrderModel.find({ seller: sellerId, orderStatus: "pending" })
+        // .populate('customers', 'name phone defaultAddress')
+        // .populate('products', 'title images price')
+        // .sort({ createdAt: -1 });
 
+        console.log("Yo")
         res.status(200).json({
             success: true,
             orders,
@@ -943,9 +945,9 @@ module.exports.GetOrderDetails = async (req, res) => {
             _id: orderId,
             seller: sellerId
         })
-        .populate('customer', 'name phone defaultAddress')
-        .populate('product')
-        .populate('chatRoom');
+            .populate('customer', 'name phone defaultAddress')
+            .populate('product')
+            .populate('chatRoom');
 
         if (!order) {
             return res.status(404).json({
@@ -953,7 +955,7 @@ module.exports.GetOrderDetails = async (req, res) => {
                 message: "Order not found"
             });
         }
-
+        console.log(order)
         res.status(200).json({
             success: true,
             order,
@@ -1033,3 +1035,4 @@ module.exports.UpdateOrderStatus = async (req, res) => {
         });
     }
 };
+

@@ -38,7 +38,7 @@ router.post("/orders", authCustomer, customerController.CreateOrder);
 // Pending/active orders
 router.get("/orders/active", authCustomer, customerController.GetActiveOrders); 
 // Get Single Order Details with Chat
-// router.get("/orders/:orderId", authCustomer, customerController.GetOrderWithChat); 
+router.get("/orders/:orderId", authCustomer, customerController.GetOrderWithChat); 
 
 // Cancel order
 router.put("/orders/:orderId/cancel", authCustomer, customerController.CancelOrder);

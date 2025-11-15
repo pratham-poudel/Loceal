@@ -811,22 +811,15 @@ module.exports.ClearCart = async (req, res) => {
 }
 
 
-// Orders
 module.exports.CreateOrder = async (req, res) => {
     try {
-        customerId = req.customer._id;
+        const customerId = req.customer._id;
         const { productId } = req.body;
 
-        //  await CartModel.findOneAndUpdate(
-        //     { customer: customerId },
-        //     { $pull: { items: { product: productId } } }
-        // );
-
-        // get customer's cart
+        // Get customer's cart with proper population
         const cart = await CartModel.findOne({ customer: customerId })
             .populate("items.product")
-            .populate("items.seller");
-
+            .populate("items.seller", "businessName");
 
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({
@@ -848,7 +841,7 @@ module.exports.CreateOrder = async (req, res) => {
         // Generate order number
         const orderNumber = 'ORD' + Date.now();
 
-
+        // Create order with proper data
         const order = new OrderModel({
             orderNumber,
             customer: customerId,
@@ -857,17 +850,17 @@ module.exports.CreateOrder = async (req, res) => {
             productSnapshot: {
                 title: cartItem.product.title,
                 description: cartItem.product.description,
-                images: cartItem.product.images,
+                images: cartItem.product.images || [],
+                unit: cartItem.product.unit
             },
             quantity: cartItem.quantity,
             pricePerUnit: cartItem.priceAtAdd,
             totalAmount: cartItem.priceAtAdd * cartItem.quantity,
-            orderStatus: "pending", // Active order
+            orderStatus: "pending",
             paymentStatus: "cod_pending"
         });
 
         await order.save();
-
 
         // Create a chat room for this order
         const chatRoom = new ChatRoomModel({
@@ -876,24 +869,32 @@ module.exports.CreateOrder = async (req, res) => {
             seller: cartItem.seller._id
         });
 
+        await chatRoom.save();
+
         // Update order with chat room reference
         order.chatRoom = chatRoom._id;
         await order.save();
 
-        // Remove ONLY this product from cart (keep others)
+        // Remove product from cart
         await CartModel.findOneAndUpdate(
             { customer: customerId },
             { $pull: { items: { product: productId } } }
         );
 
-        // success response
+        // Populate the order before sending response
+        const populatedOrder = await OrderModel.findById(order._id)
+            .populate('seller', 'businessName')
+            .populate('product', 'title images')
+            .populate('chatRoom');
+
         res.status(201).json({
             success: true,
-            order,
+            order: populatedOrder,
             chatRoom,
             message: "Order created successfully. You can now chat with the seller."
         });
     } catch (err) {
+        console.error('Error creating order:', err);
         res.status(500).json({
             success: false,
             error: err.message
@@ -901,6 +902,8 @@ module.exports.CreateOrder = async (req, res) => {
     }
 }
 
+
+// In customer.controller.js - Fix GetActiveOrders function
 module.exports.GetActiveOrders = async (req, res) => {
     try {
         const customerId = req.customer._id;
@@ -909,11 +912,10 @@ module.exports.GetActiveOrders = async (req, res) => {
             customer: customerId,
             orderStatus: { $in: ["pending", "confirmed", "meeting_scheduled"] }
         })
-            .populate('seller', 'businessName')
-            .populate('product', 'title images')
-            .populate('chatRoom')
-            .sort({ createdAt: -1 });
-
+        .populate('seller', 'businessName phone')
+        .populate('product', 'title images price unit')
+        .populate('chatRoom')
+        .sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,
@@ -922,13 +924,13 @@ module.exports.GetActiveOrders = async (req, res) => {
             message: "Active orders retrieved successfully"
         });
     } catch (err) {
+        console.error('Error fetching active orders:', err);
         res.status(500).json({
             success: false,
             error: err.message
         });
     }
 }
-
 
 // Get Completed Orders (for review/report)
 module.exports.GetCompletedOrders = async (req, res) => {
@@ -959,7 +961,7 @@ module.exports.GetCompletedOrders = async (req, res) => {
 
 
 // Get Single Order Details with Chat -> pisot bhabim ki eitu use ase ne nai baa keneke korim -> present situation no idea about this
-exports.getOrderWithChat = async (req, res) => {
+exports.GetOrderWithChat = async (req, res) => {
     try {
         const { orderId } = req.params;
         const customerId = req.customer._id;
