@@ -33,7 +33,7 @@ router.post("/orders/:orderId/verify-otp", authSeller, sellerController.VerifyOT
 router.get("/orders", authSeller, sellerController.GetOrders);
 router.get("/orders/:orderId", authSeller, sellerController.GetOrderDetails);
 router.put("/orders/:orderId/status", authSeller, sellerController.UpdateOrderStatus);
-router.get("/orders/:orderId", authSeller, sellerController.GetOrderWithChat); 
+// router.get("/orders/chat/:orderId", authSeller, sellerController.GetOrderWithChat); 
 
 module.exports = router;
 

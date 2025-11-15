@@ -78,8 +78,8 @@ export const sellerAPI = {
   createProduct: (data) => api.post('/seller/products', data),
   updateProduct: (id, data) => api.put(`/seller/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/seller/products/${id}`),
-  getOrderDetails: (id) => api.get(`/seller/products/${id}`),
-  getOrders: (params) => api.get('/seller/orders', { params }),
+  getOrderWithChat: (id) => api.get(`/seller/orders/${id}`), // newly added for getting chat
+  getOrders: (params) => api.get('/seller/orders', {params}),
   initiatePayment: (id) => api.post(`/seller/orders/${id}/initiate-payment`),
   verifyOTP: (id, otp) => api.post(`/seller/orders/${id}/verify-otp`, { otp }),
 };

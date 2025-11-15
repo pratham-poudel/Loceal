@@ -38,7 +38,7 @@ const SellerChat = () => {
     try {
       setLoading(true);
       const [orderResponse, messagesResponse] = await Promise.all([
-        sellerAPI.getOrderDetails(orderId),
+        sellerAPI.getOrderWithChat(orderId),
         chatAPI.getMessages(orderId, userType)
       ]);
 

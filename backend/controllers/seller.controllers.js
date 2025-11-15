@@ -917,7 +917,7 @@ module.exports.GetOrders = async (req, res) => {
         // }
 
         // console.log("Yo")
-
+        
         const orders = await OrderModel.find({ seller: sellerId, orderStatus: "pending" })
         // .populate('customers', 'name phone defaultAddress')
         // .populate('products', 'title images price')
@@ -945,12 +945,15 @@ module.exports.GetOrderDetails = async (req, res) => {
         const { orderId } = req.params;
         const sellerId = req.seller._id;
 
+
+        console.log("In Get Order Details + Chat for Seller:", sellerId, "Order ID:", orderId);
+
         const order = await OrderModel.findOne({
             _id: orderId,
             seller: sellerId
         })
-            .populate('customer', 'name phone defaultAddress')
-            .populate('product')
+            // .populate('customer')
+            // .populate('product')
             .populate('chatRoom');
 
         if (!order) {
@@ -1041,35 +1044,37 @@ module.exports.UpdateOrderStatus = async (req, res) => {
 };
 
 
-module.exports.GetOrderWithChat = async (req, res) => {
-    try {
-        const { orderId } = req.params;
-        const sellerId = req.seller._id;
+// module.exports.GetOrderWithChat = async (req, res) => {
+//     try {
+//         const { orderId } = req.params;
+//         const sellerId = req.seller._id;
+        
+//         console.log("In Fetching order with chat for orderId:", orderId, "and sellerId:", sellerId);
 
-        const order = await OrderModel.findOne({
-            _id: orderId,
-            seller: sellerId
-        })
-            .populate('customer', 'name phone defaultAddress')
-            .populate('product')
-            .populate('chatRoom');
+//         const order = await OrderModel.findOne({
+//             _id: orderId,
+//             seller: sellerId
+//         })
+//             .populate('customer', 'name phone defaultAddress')
+//             .populate('product')
+//             .populate('chatRoom');
 
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Order not found"
-            });
-        }
+//         if (!order) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "Order not found"
+//             });
+//         }
 
-        res.status(200).json({
-            success: true,
-            order
-        });
+//         res.status(200).json({
+//             success: true,
+//             order
+//         });
 
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-}
+//     } catch (error) {
+//         res.status(500).json({
+//             success: false,
+//             error: error.message
+//         });
+//     }
+// }
