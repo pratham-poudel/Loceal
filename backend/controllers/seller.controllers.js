@@ -952,8 +952,8 @@ module.exports.GetOrderDetails = async (req, res) => {
             _id: orderId,
             seller: sellerId
         })
-            // .populate('customer')
-            // .populate('product')
+            .populate('customer')
+            .populate('product')
             .populate('chatRoom');
 
         if (!order) {
