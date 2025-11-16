@@ -177,15 +177,15 @@ const Chat = () => {
           <div className="mt-3 p-3 bg-blue-50 rounded-lg">
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center space-x-4">
-                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                {/* <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                   order.orderStatus === 'completed' 
                     ? 'bg-green-100 text-green-800'
                     : 'bg-blue-100 text-blue-800'
                 }`}>
                   {order.orderStatus}
-                </div>
-                <span className="text-gray-700">
-                  Coordinate meeting time and location with the seller
+                </div> */}
+                <span className="text-gray-700 font-bold text-base">
+                  Chat with Seller
                 </span>
               </div>
               
