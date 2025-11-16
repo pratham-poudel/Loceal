@@ -4,7 +4,7 @@ const orderSchema = new mongoose.Schema({
     orderNumber: {
         type: String,
         required: true,
-        unique: true  
+        unique: true
     },
     customer: {
         type: mongoose.Schema.Types.ObjectId,
@@ -108,8 +108,15 @@ const orderSchema = new mongoose.Schema({
     updatedAt: {
         type: Date,
         default: Date.now
+    },
+    otpVerification: {
+        code: String,
+        expiresAt: Date,
+        generatedAt: Date,
+        verified: { type: Boolean, default: false },
+        attempts: { type: Number, default: 0 }
     }
-}, {timestamps: true});
+}, { timestamps: true });
 
 orderSchema.index({ customer: 1 });
 
