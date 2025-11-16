@@ -3,6 +3,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Store, Users, Shield, Truck } from 'lucide-react';
 
+import BuyImage from '../../public/images/buy.png';
+import ChatImage from '../../public/images/chat.jpg';
+import MeetImage from '../../public/images/meet.png';
+
 const HomePage = () => {
   return (
     <div className="min-h-screen">
@@ -89,9 +93,9 @@ const HomePage = () => {
               </div>
               <div className="bg-white p-6 rounded-xl shadow-lg md:w-2/5">
                 <img 
-                  src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                  src={BuyImage}
                   alt="Browse products" 
-                  className="w-full h-48 object-cover rounded-lg"
+                  className="max-w-[540px] max-h-[540px] w-auto h-auto object-cover rounded-lg mx-auto"
                 />
               </div>
             </div>
@@ -104,7 +108,7 @@ const HomePage = () => {
               </div>
               <div className="bg-white p-6 rounded-xl shadow-lg md:w-2/5">
                 <img 
-                  src="https://images.unsplash.com/photo-1587560699334-cc4ff634909a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                  src={ChatImage} 
                   alt="Chat with sellers" 
                   className="w-full h-48 object-cover rounded-lg"
                 />
@@ -119,7 +123,7 @@ const HomePage = () => {
               </div>
               <div className="bg-white p-6 rounded-xl shadow-lg md:w-2/5">
                 <img 
-                  src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                  src={MeetImage} 
                   alt="Meet and complete" 
                   className="w-full h-48 object-cover rounded-lg"
                 />
