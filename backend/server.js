@@ -20,7 +20,10 @@ const MessageModel = require('./models/message.model');
 // Initialize Socket.io
 const io = socketIo(server, {
   cors: {
-    origin: `http://localhost:${process.env.FRONTEND_PORT || 3000}`, // Your frontend URL
+    origin: [
+      `http://localhost:${process.env.FRONTEND_PORT || 3000}`, // My frontend URL
+      "https://loceal.netlify.app"
+    ],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -114,7 +117,7 @@ io.on('connection', (socket) => {
   socket.on('mark_messages_read', async (data) => {
     try {
       const { chatRoomId, userType } = data;
-      
+
       // Update unread count in chat room
       await ChatRoomModel.findByIdAndUpdate(chatRoomId, {
         [`unreadCount.${userType}`]: 0
@@ -122,12 +125,12 @@ io.on('connection', (socket) => {
 
       // Mark messages as read in database
       await MessageModel.updateMany(
-        { 
+        {
           chatRoom: chatRoomId,
           isRead: false,
           senderType: { $ne: userType } // Only mark others' messages as read
         },
-        { 
+        {
           isRead: true,
           readAt: new Date()
         }

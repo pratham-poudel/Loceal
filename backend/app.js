@@ -19,7 +19,10 @@ const adminRoutes = require("./routes/admin.routes");
 
 // middlewares
 app.use(cors({
-    origin: "http://localhost:5173",  
+    origin: [
+        `http://localhost:${process.env.FRONTEND_PORT || 3000}`, // My frontend URL
+        "https://loceal.netlify.app"
+    ],
     credentials: true
 }));
 app.use(express.json());
