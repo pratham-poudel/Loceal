@@ -122,9 +122,9 @@ const SellerOrders = () => {
               >
                 <option value="all">All Orders</option>
                 <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
+                {/* <option value="confirmed">Confirmed</option>
                 <option value="meeting_scheduled">Meeting Scheduled</option>
-                <option value="ready_for_pickup">Ready for Pickup</option>
+                <option value="ready_for_pickup">Ready for Pickup</option> */}
                 <option value="completed">Completed</option>
               </select>
             </div>

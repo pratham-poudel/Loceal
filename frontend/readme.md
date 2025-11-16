@@ -28,3 +28,10 @@ const AuthContext = createContext();
 
 - removed Resend Verification Email for now
 - might add later tho
+
+
+
+
+
+
+- Seller: 
