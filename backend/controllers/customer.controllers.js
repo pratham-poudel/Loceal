@@ -1052,7 +1052,7 @@ module.exports.CancelOrder = async (req, res) => {
 }
 
 // Verify OTP to Complete Order
-module.exports.VerifyOTP = async (req, res) => {
+module.exports.GetOTP = async (req, res) => {
     try {
         const { orderId } = req.params;
         const { otp } = req.body;

@@ -108,10 +108,10 @@ const OrderCard = ({ order, onCancel, onChat, showActions = true }) => {
       <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            {getStatusIcon(order.orderStatus)}
+            {/* {getStatusIcon(order.orderStatus)}
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.orderStatus)}`}>
               {getStatusText(order.orderStatus)}
-            </span>
+            </span> */}
           </div>
           
           <div className="text-sm text-gray-600">

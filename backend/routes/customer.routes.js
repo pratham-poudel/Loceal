@@ -49,7 +49,7 @@ router.get("/orders/completed", authCustomer, customerController.GetCompletedOrd
 
 
 // Verify OTP to complete order  
-router.post("/orders/:orderId/verify-otp", authCustomer, customerController.VerifyOTP);
+router.post("/orders/:orderId/verify-otp", authCustomer, customerController.GetOTP);
 
 
 module.exports = router;
