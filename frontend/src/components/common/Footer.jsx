@@ -22,11 +22,11 @@ const Footer = () => {
             <div className="flex items-center space-x-4 text-primary-200">
               <div className="flex items-center space-x-1">
                 <Phone className="w-4 h-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 8453391908</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Mail className="w-4 h-4" />
-                <span>support@loceal.com</span>
+                <span>armaangogoi2004@gmail.com</span>
               </div>
             </div>
           </div>
@@ -48,8 +48,8 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">About Us</h3>
             <ul className="space-y-2 text-primary-200">
               <li><a href="#" className="hover:text-white transition-colors">Our Story</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">How It Works</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Safety Guidelines</a></li>
+              {/* <li><a href="#" className="hover:text-white transition-colors">How It Works</a></li> */}
+              {/* <li><a href="#" className="hover:text-white transition-colors">Safety Guidelines</a></li> */}
               <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
             </ul>
           </div>
@@ -57,12 +57,12 @@ const Footer = () => {
 
         <div className="border-t border-primary-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-primary-200 text-sm">
-            © 2024 Loceal. All rights reserved.
+            © 2025 Loceal. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a href="#" className="text-primary-200 hover:text-white transition-colors text-sm">Privacy Policy</a>
             <a href="#" className="text-primary-200 hover:text-white transition-colors text-sm">Terms of Service</a>
-            <a href="#" className="text-primary-200 hover:text-white transition-colors text-sm">Cookie Policy</a>
+            {/* <a href="#" className="text-primary-200 hover:text-white transition-colors text-sm">Cookie Policy</a> */}
           </div>
         </div>
       </div>
