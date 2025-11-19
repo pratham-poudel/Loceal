@@ -1,0 +1,30 @@
+name: Deploy to ec2 => Loceal backend
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "backend/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: 13.202.153.166
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            export NVM_DIR=/home/ubuntu/.nvm
+            source /home/ubuntu/.nvm/nvm.sh
+
+            cd /home/ubuntu/Loceal/backend
+            git pull origin main
+            npm install
+            pm2 restart Loceal-backend || pm2 start server.js --name Loceal-backend
