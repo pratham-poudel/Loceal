@@ -18,15 +18,21 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('userData');
+      const adminToken = localStorage.getItem('adminToken');
+      const adminData = localStorage.getItem('adminData');
 
-      if (token && userData) {
+      if (adminToken && adminData) {
+        // Admin user
+        const parsedAdminData = JSON.parse(adminData);
+        setUser(parsedAdminData);
+        setUserType('admin');
+        setIsVerified(true); // Admin is always verified
+      } else if (token && userData) {
+        // Regular user (customer/seller)
         const parsedUserData = JSON.parse(userData);
         setUser(parsedUserData);
         setUserType(parsedUserData.userType);
         setIsVerified(parsedUserData.isVerified !== false);
-
-        // Optional: Verify token with backend
-        // You can add an API call here to validate the token
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -86,6 +92,9 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminData');
+    localStorage.removeItem('userType');
     setUser(null);
     setUserType(null);
     setIsVerified(true);

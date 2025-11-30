@@ -30,6 +30,12 @@ module.exports.authCustomer = async (req, res, next) => {
             });
         }
 
+        if(customer.isBlocked){
+            return res.status(403).json({
+                message: "Your account has been blocked. Please contact support."
+            });
+        }
+
         req.customer = customer;
         next();
     }catch(err){
@@ -64,6 +70,12 @@ module.exports.authSeller = async (req, res, next) => {
         if(!seller){
             return res.status(404).json({
                 message: "Seller not found."
+            });
+        }
+
+        if(seller.isBlocked){
+            return res.status(403).json({
+                message: "Your account has been blocked. Please contact support."
             });
         }
 

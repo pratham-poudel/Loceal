@@ -1,8 +1,8 @@
 // src/lib/api.js
 import axios from 'axios';
 
-// const API_BASE_URL = 'http://localhost:3000';
-const API_BASE_URL = 'https://13.202.153.166:3000/';
+const API_BASE_URL = 'http://localhost:3000';
+// const API_BASE_URL = 'https://13.202.153.166:3000/';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -12,7 +12,8 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    // Check for different token types
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -48,6 +49,12 @@ export const authAPI = {
     register: (userData) => api.post('/seller/register', userData),
     verifyEmail: (token) => api.get(`/seller/verifySeller/${token}`),
     getProfile: () => api.get('/seller/profile'), // Add this
+  },
+  admin: {
+    login: (credentials) => api.post('/admin/login', credentials),
+    register: (userData) => api.post('/admin/register', userData),
+    logout: () => api.get('/admin/logout'),
+    getProfile: () => api.get('/admin/profile'),
   },
 };
 
@@ -88,6 +95,13 @@ export const sellerAPI = {
 export const chatAPI = {
   getMessages: (orderId, userType) => api.get(`/api/chat/${userType}/orders/${orderId}/messages`),
   sendMessage: (orderId, userType, data) => api.post(`/api/chat/${userType}/orders/${orderId}/messages`, data),
+};
+
+export const adminAPI = {
+  getAllCustomers: (params) => api.get('/admin/customers', { params }),
+  getAllSellers: (params) => api.get('/admin/sellers', { params }),
+  blockUser: (data) => api.post('/admin/block-user', data),
+  unblockUser: (data) => api.post('/admin/unblock-user', data),
 };
 
 export default api;

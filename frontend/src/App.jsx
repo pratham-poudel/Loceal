@@ -18,6 +18,10 @@ import EmailVerificationSuccess from './pages/Auth/EmailVerificationSuccess';
 import SellerEmailVerificationSuccess from './pages/Auth/SellerEmailVerificationSuccess';
 import PendingVerification from './pages/Auth/PendingVerification';
 
+// Admin Pages
+import AdminLogin from './pages/Admin/AdminLogin';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+
 // Customer Pages
 import CustomerDashboard from './pages/Customer/CustomerDashboard';
 import ProductList from './pages/Customer/ProductList';
@@ -52,6 +56,17 @@ function App() {
                 <Route path="/customer/verifyCustomer/:token" element={<EmailVerificationSuccess />} />
                 <Route path="/seller/verifySeller/:token" element={<SellerEmailVerificationSuccess />} />
                 <Route path="/pending-verification" element={<PendingVerification />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route 
+                  path="/admin/dashboard" 
+                  element={
+                    <ProtectedRoute userType="admin">
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
 
                 {/* Protected Customer Routes */}
                 <Route 
@@ -115,7 +130,7 @@ function App() {
                 <Route 
                   path="/seller/dashboard" 
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute userType="seller">
                       <SellerDashboard />
                     </ProtectedRoute>
                   } 
@@ -123,7 +138,7 @@ function App() {
                 <Route 
                   path="/seller/products" 
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute userType="seller">
                       <ProductManagement />
                     </ProtectedRoute>
                   } 
@@ -131,7 +146,7 @@ function App() {
                 <Route 
                   path="/seller/products/add" 
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute userType="seller">
                       <AddProduct />
                     </ProtectedRoute>
                   } 
@@ -139,7 +154,7 @@ function App() {
                 <Route 
                   path="/seller/products/edit/:productId" 
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute userType="seller">
                       <AddProduct />
                     </ProtectedRoute>
                   } 
@@ -147,7 +162,7 @@ function App() {
                 <Route 
                   path="/seller/orders" 
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute userType="seller">
                       <SellerOrders />
                     </ProtectedRoute>
                   } 
@@ -155,7 +170,7 @@ function App() {
                 <Route 
                   path="/seller/chat/:orderId" 
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute userType="seller">
                       <SellerChat />
                     </ProtectedRoute>
                   } 
