@@ -24,7 +24,7 @@ const io = socketIo(server, {
       `http://localhost:${process.env.FRONTEND_PORT || 3000}`, // My frontend URL
       "https://loceal.netlify.app"
     ],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   }
 });
