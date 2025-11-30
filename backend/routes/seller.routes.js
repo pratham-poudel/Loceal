@@ -27,13 +27,20 @@ router.patch("/products/:productId/availability", authSeller, sellerController.T
 
 // seller initiate payment
 router.post("/orders/:orderId/initiate-payment", authSeller, sellerController.InitiatePayment);
-router.post("/orders/:orderId/verify-otp", authSeller, sellerController.VerifyOTP); // Seller enters OTP
+// router.post("/orders/:orderId/verify-otp", authSeller, sellerController.VerifyOTTP); // Seller enters OTP
 
 
 router.get("/orders", authSeller, sellerController.GetOrders);
 router.get("/orders/:orderId", authSeller, sellerController.GetOrderDetails);
 router.put("/orders/:orderId/status", authSeller, sellerController.UpdateOrderStatus);
 // router.get("/orders/chat/:orderId", authSeller, sellerController.GetOrderWithChat); 
+
+
+
+// order completion otp
+router.post("/orders/:orderId/generate-otp", authSeller, sellerController.GenerateOTP);
+router.post("/orders/:orderId/verify-otp", authSeller, sellerController.VerifyOTP);
+
 
 module.exports = router;
 

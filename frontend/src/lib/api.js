@@ -1,8 +1,8 @@
 // src/lib/api.js
 import axios from 'axios';
 
-// const API_BASE_URL = 'http://localhost:3000';
-const API_BASE_URL = 'https://13.202.153.166:3000/';
+const API_BASE_URL = 'http://localhost:3000';
+// const API_BASE_URL = 'https://13.202.153.166:3000/';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -76,6 +76,8 @@ export const orderAPI = {
 export const sellerAPI = {
   getProducts: () => api.get('/seller/products'),
   getProduct: (id) => api.get(`/seller/products/${id}`),
+  generateOTP: (id) => api.post(`/seller/orders/${id}/generate-otp`),
+  verifyOTP: (id, data) => api.post(`/seller/orders/${id}/verify-otp`, data),
   createProduct: (data) => api.post('/seller/products', data),
   updateProduct: (id, data) => api.put(`/seller/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/seller/products/${id}`),

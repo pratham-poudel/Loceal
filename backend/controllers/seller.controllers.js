@@ -778,7 +778,8 @@ module.exports.InitiatePayment = async (req, res) => {
     }
 };
 
-module.exports.VerifyOTP = async (req, res) => {
+
+module.exports.VerifyOTTP = async (req, res) => {
     try {
         const { orderId } = req.params;
         const { otp } = req.body;
@@ -796,23 +797,26 @@ module.exports.VerifyOTP = async (req, res) => {
             });
         }
 
-        if (!order.otp) {
-            return res.status(400).json({
-                success: false,
-                message: "Payment not initiated for this order. Please initiate payment first."
-            });
-        }
+        // if (!order.otpVerification.code) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Payment not initiated for this order. Please initiate payment first."
+        //     });
+        // }
 
         // Check OTP expiration
-        if (order.otp.expiresAt < new Date()) {
+        if (order.otpVerification.expiresAt < new Date()) {
             return res.status(400).json({
                 success: false,
                 message: "OTP has expired. Please initiate payment again."
             });
         }
 
+        console.log("Provided OTP:", otp.otp);
+        console.log("Stored OTP:", order.otpVerification.code);
+
         // Verify OTP
-        if (order.otp.code !== otp) {
+        if (order.otpVerification.code !== otp.otp) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid OTP. Please check the code with the customer."
@@ -822,7 +826,7 @@ module.exports.VerifyOTP = async (req, res) => {
         // Mark order as completed
         order.orderStatus = "completed";
         order.paymentStatus = "cod_completed";
-        order.otp.verified = true;
+        order.otpVerification.verified = true;
         order.paymentConfirmedBy = {
             userType: "seller",
             userId: sellerId,
@@ -1078,3 +1082,342 @@ module.exports.UpdateOrderStatus = async (req, res) => {
 //         });
 //     }
 // }
+
+
+
+
+
+
+// Generate OTP for Order Completion - WITH REGENERATE SUPPORT
+module.exports.GenerateOTP = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const sellerId = req.seller._id;
+
+        // Find order and verify seller ownership
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            seller: sellerId
+        }).populate('customer', 'name email phone');
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        // ✅ FIX: Allow OTP generation for pending orders OR orders with expired OTP
+        if (order.orderStatus !== "pending") {
+            return res.status(400).json({
+                success: false,
+                message: "Can only generate OTP for pending orders"
+            });
+        }
+
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // ✅ FIX: Reset OTP verification data (for regenerate case)
+        order.otpVerification = {
+            code: otp,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+            generatedAt: new Date(),
+            verified: false,
+            attempts: 0
+        };
+
+        // DO NOT CHANGE ORDER STATUS - keep it as pending
+        order.statusHistory.push({
+            status: order.orderStatus,
+            timestamp: new Date(),
+            note: "OTP generated for order verification"
+        });
+
+        await order.save();
+
+        // Send OTP email to customer
+        await sendEmail(order.customer.email, "OTP for Order Completion - Loceal",
+            `
+            <html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #0F0E47;
+        }
+        .container {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+        }
+        .content {
+            background-color: #272757;
+            padding: 40px;
+            margin: 20px auto;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+            text-align: left;
+            color: #E8E8F0;
+        }
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #8686AC;
+            text-align: center;
+        }
+        .message {
+            font-size: 16px;
+            color: #C9C9D8;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+        .otp-display {
+            background-color: #505081;
+            color: #FFFFFF;
+            font-size: 32px;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            letter-spacing: 8px;
+        }
+        .info-box {
+            background-color: #3A3A6B;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #8686AC;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #A8A8C2;
+            text-align: center;
+        }
+        .header-table {
+            background-color: #505081;
+            color: white;
+            text-align: center;
+        }
+        .warning {
+            color: #FF6B6B;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <table width="100%" cellpadding="0" cellspacing="0" class="header-table">
+            <tr>
+                <td style="padding: 20px; font-size: 24px; font-weight: bold;">LOCEAL</td>
+            </tr>
+            <tr>
+                <td style="font-size: 16px;">Local Marketplace</td>
+            </tr>
+        </table>
+
+        <div class="content">
+            <div class="title">ORDER COMPLETION OTP</div>
+            
+            <p class="message">Dear <b>${order.customer.name}</b>,</p>
+            
+            <p class="message">Your seller <b>${req.seller.businessName}</b> has generated an OTP to complete your order.</p>
+            
+            <div class="info-box">
+                <p style="margin: 5px 0;"><b>Order Number:</b> ${order.orderNumber}</p>
+                <p style="margin: 5px 0;"><b>Amount:</b> ₹${order.totalAmount}</p>
+                <p style="margin: 5px 0;"><b>Valid Until:</b> ${new Date(order.otpVerification.expiresAt).toLocaleTimeString()}</p>
+            </div>
+
+            <p class="message">Please share this OTP with the seller to complete your transaction:</p>
+
+            <div class="otp-display">
+                ${otp}
+            </div>
+
+            <p class="message warning">⚠️ Do not share this OTP with anyone except the verified seller during your physical meeting.</p>
+            
+            <p class="message">This OTP will expire in <b>10 minutes</b> for security reasons.</p>
+
+            <p class="footer">
+                If you did not request this OTP, please contact our support immediately.<br>
+                Thank you for choosing Loceal!
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+            `
+        );
+
+        // Send system message in chat room
+        await MessageModel.create({
+            chatRoom: order.chatRoom,
+            senderType: "system",
+            senderId: sellerId,
+            content: `OTP has been generated and sent to customer's email. Please ask the customer to share the OTP with you to complete the order.`,
+            messageType: "system"
+        });
+
+        // Log for development
+        console.log(`📧 OTP sent to ${order.customer.email}: ${otp}`);
+
+        res.json({
+            success: true,
+            message: "OTP sent to customer successfully",
+            order: {
+                orderNumber: order.orderNumber,
+                customerName: order.customer.name,
+                customerPhone: order.customer.phone,
+                totalAmount: order.totalAmount,
+                otpExpiresAt: order.otpVerification.expiresAt
+            }
+        });
+    } catch (err) {
+        console.error("Generate OTP Error:", err);
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
+
+
+// Verify OTP and Complete Order - CHANGE STATUS ONLY WHEN OTP VERIFIED
+module.exports.VerifyOTP = async (req, res) => {
+    try {
+        console.log("Hitting Verify OTP Endpoint");
+        const { orderId } = req.params;
+        const { otp } = req.body;
+        const sellerId = req.seller._id;
+        
+        console.log("Received OTP:", otp);
+
+        // Find order and verify seller ownership
+        const order = await OrderModel.findOne({
+            _id: orderId,
+            seller: sellerId
+        }).populate('customer', 'name');
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        // Check if OTP exists
+        if (!order.otpVerification || !order.otpVerification.code) {
+            return res.status(400).json({
+                success: false,
+                message: "No OTP generated for this order. Please generate OTP first."
+            });
+        }
+
+        console.log("Stored OTP:", order.otpVerification.code);
+        console.log("Received OTP:", otp.otp);
+
+        // Check if OTP is already verified
+        if (order.otpVerification.verified) {
+            return res.status(400).json({
+                success: false,
+                message: "OTP already verified. Order is already completed."
+            });
+        }
+
+        // Check OTP expiration
+        if (order.otpVerification.expiresAt < new Date()) {
+            return res.status(400).json({
+                success: false,
+                message: "OTP has expired. Please generate a new OTP."
+            });
+        }
+
+        // Check OTP attempts
+        if (order.otpVerification.attempts >= 3) {
+            return res.status(400).json({
+                success: false,
+                message: "Too many failed OTP attempts. Please generate a new OTP."
+            });
+        }
+
+        // ✅ FIX: Remove .otp - Compare directly with code
+        if (order.otpVerification.code !== otp.otp) {
+            // Increment attempts
+            order.otpVerification.attempts += 1;
+            await order.save();
+
+            return res.status(400).json({
+                success: false,
+                message: `Invalid OTP. ${3 - order.otpVerification.attempts} attempts remaining.`
+            });
+        }
+
+        // ✅ OTP VERIFIED - NOW CHANGE STATUS TO COMPLETED
+        order.otpVerification.verified = true;
+        order.otpVerification.verifiedAt = new Date();
+        order.orderStatus = "completed"; // Change from pending to completed
+        order.paymentStatus = "cod_completed";
+        order.paymentConfirmedBy = {
+            userType: "seller",
+            userId: sellerId,
+            confirmedAt: new Date()
+        };
+
+        order.statusHistory.push({
+            status: "completed",
+            timestamp: new Date(),
+            note: "OTP verified - Order completed successfully"
+        });
+
+        // Update seller stats
+        await SellerModel.findByIdAndUpdate(sellerId, {
+            $inc: {
+                totalSales: 1,
+                totalOrders: 1,
+                totalRevenue: order.totalAmount
+            }
+        });
+
+        // Update product sales count
+        await ProductModel.findByIdAndUpdate(order.product, {
+            $inc: {
+                totalSales: order.quantity,
+                stock: -order.quantity
+            }
+        });
+
+        await order.save();
+
+        // Send completion message in chat
+        await MessageModel.create({
+            chatRoom: order.chatRoom,
+            senderType: "system",
+            senderId: sellerId,
+            content: `✅ Order completed successfully! Payment received and order marked as complete. Thank you for your business!`,
+            messageType: "system"
+        });
+
+        res.json({
+            success: true,
+            message: "Order completed successfully!",
+            order: {
+                orderNumber: order.orderNumber,
+                status: order.orderStatus,
+                completedAt: new Date()
+            }
+        });
+
+    } catch (err) {
+        console.error("Verify OTP Error:", err);
+        res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+};
